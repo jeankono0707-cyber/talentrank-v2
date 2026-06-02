@@ -4,28 +4,33 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
+import { PREV_PATH_KEY, CURR_PATH_KEY } from "@/components/ui/PathTracker";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SmartBackButton — bouton retour intelligent.
+// SmartBackButton — bouton retour intelligent et FIABLE.
 //
 // Comportement :
-//   1. Si l'utilisateur a un historique dans cet onglet (history.length > 1)
-//      → router.back() (revient à la VRAIE page précédente du navigateur)
-//   2. Sinon (l'utilisateur a tapé l'URL ou est arrivé directement)
-//      → fallbackHref (la route "logique précédente" selon le contexte)
+//   1. Lecture de la "previous in-site path" via sessionStorage (alimenté par
+//      <PathTracker /> monté dans RootShell).
+//   2. Si une prev path existe ET est différente de la page actuelle ET est
+//      différente du fallbackHref (sinon le clic ne fait rien d'utile) →
+//      navigation vers cette prev path via router.push.
+//   3. Sinon → fallbackHref (route logique parente).
 //
-// FIX-6 : on a retiré le check `document.referrer` qui posait problème en
-// SPA Next.js — referrer ne change pas lors des navigations client-side
-// (router.push), donc le check tombait toujours en false et on partait sur
-// le fallback même quand l'historique existait. Maintenant on fait confiance
-// à history.length.
+// Pourquoi pas router.back() ? Parce que `window.history.length > 1` est
+// trop permissif : il compte aussi l'historique externe pré-arrivée sur le
+// site, donc router.back() peut faire quitter le site sans qu'on s'en rende
+// compte (FIX-10 — l'utilisateur atterrissait toujours sur sa 1ère page
+// visitée comme si on revenait à la racine).
 //
-// SSR-safe : pas d'accès à window au render initial.
+// Avec PathTracker on a la VRAIE previous in-site path, fiable.
+//
+// SSR-safe : pas d'accès à sessionStorage au render initial.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Props {
-  /** Route logique de repli si pas d'historique. ex: "/ranking" depuis un profession ranking. */
+  /** Route logique de repli si pas de prev path connue. ex: "/ranking". */
   fallbackHref: string;
   /** Texte affiché. Default "Retour". */
   label?: string;
@@ -41,29 +46,44 @@ export function SmartBackButton({
   className,
 }: Props) {
   const router = useRouter();
-  const [hasHistory, setHasHistory] = useState(false);
+  // Le href affiché = fallbackHref tant qu'on n'a pas vérifié la prev path,
+  // puis remplacé par la prev path si elle est dispo. Comme ça le composant
+  // dégrade gracieusement même sans JS (SEO + crawl + a11y).
+  const [smartHref, setSmartHref] = useState<string>(fallbackHref);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    // history.length > 1 = au moins une page précédente dans cet onglet.
-    // C'est suffisant : si l'utilisateur a navigué sur le site, il revient
-    // logiquement à sa page précédente. S'il est arrivé directement (URL
-    // tapée, nouveau tab depuis un favori), length === 1 et on tombe sur
-    // le fallback.
-    setHasHistory(window.history.length > 1);
-  }, []);
+    try {
+      const prev = sessionStorage.getItem(PREV_PATH_KEY);
+      const curr = sessionStorage.getItem(CURR_PATH_KEY);
+      const currentPath = window.location.pathname;
+      // Conditions pour utiliser prev :
+      //   - prev existe
+      //   - prev != current (sinon le clic ne ferait rien)
+      //   - prev != curr stored (cohérence interne)
+      //   - prev != fallbackHref (sinon pas d'avantage)
+      if (
+        prev &&
+        prev !== currentPath &&
+        prev !== curr &&
+        prev !== fallbackHref
+      ) {
+        setSmartHref(prev);
+      }
+    } catch {
+      // sessionStorage peut throw en mode privé strict — on retombe sur fallback.
+    }
+  }, [fallbackHref]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (!hasHistory) return; // laisse le <Link> agir comme fallback
+    // On force router.push pour rester en SPA (pas de full reload).
     e.preventDefault();
-    router.back();
+    router.push(smartHref);
   };
 
-  // En cas d'absence d'historique on rend un vrai Link vers fallbackHref pour
-  // que le navigateur sache vers où aller (et le crawler SEO aussi).
   return (
     <Link
-      href={fallbackHref}
+      href={smartHref}
       onClick={handleClick}
       aria-label={label}
       className={cn(

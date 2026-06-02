@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { MainSidebar } from "./MainSidebar";
 import { Footer } from "./Footer";
 import { FeedbackWidget } from "@/components/feedback/FeedbackWidget";
+import { PathTracker } from "@/components/ui/PathTracker";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RootShell — décide du chrome (sidebar + footer) selon la route.
@@ -31,6 +32,10 @@ export function RootShell({ children }: { children: React.ReactNode }) {
   if (hideChrome) {
     return (
       <>
+        {/* PathTracker : mémorise la page précédente pour SmartBackButton.
+            Mount globalement pour que le tracking continue même sur /welcome
+            et /onboarding (sinon on perd la trace à la sortie de l'onboarding). */}
+        <PathTracker />
         {/* Skip-to-content link — audit Anya. Invisible jusqu'au focus
             clavier, permet aux users keyboard/screen-reader de bypasser le
             chrome répétitif et aller direct au contenu principal. */}
@@ -49,6 +54,7 @@ export function RootShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <PathTracker />
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:absolute focus:top-3 focus:left-3 focus:z-50 focus:rounded-full focus:bg-night-700 focus:text-white focus:px-4 focus:py-2 focus:text-[12px] focus:font-bold focus:shadow-card focus:ring-2 focus:ring-cyan-400"
