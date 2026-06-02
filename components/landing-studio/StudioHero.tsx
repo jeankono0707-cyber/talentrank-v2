@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowRight, Filter, Search, Sparkles } from "lucide-react";
+import { ArrowRight, Filter, Search, Sparkles, Target } from "lucide-react";
 import { StudioMascot } from "@/components/ui/StudioMascot";
+import { PROFESSIONS, normalizeName } from "@/lib/professions";
+import { TALENTS, talentProfessionId } from "@/lib/mock-talents";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,20 +25,68 @@ import { cn } from "@/lib/utils";
 //   - 3 cards "métier + n°1 + score" (preview live)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SUGGESTED_SEARCHES = [
-  "Animateur 3D Senior · Paris",
-  "Frontend React · Lyon",
-  "Motion Designer · Marseille",
-  "Boulanger MOF · Lille",
-  "Data Scientist · Bordeaux",
+// FIX-7 : suggestions = vrais métiers (avec ID profession) pour aller direct
+// aux cartes de classes. Plus de "Animateur 3D Senior · Paris" en string brut.
+const SUGGESTED_PROFESSION_IDS = [
+  "animation-3d",
+  "frontend-engineer",
+  "motion-designer",
+  "baker",
+  "illustrator",
 ];
 
 export function StudioHero() {
   const router = useRouter();
   const [query, setQuery] = useState("");
 
+  // Compte de talents par métier — sert à prioriser les suggestions live.
+  const talentCountByProfession = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const t of TALENTS) {
+      const pid = talentProfessionId(t);
+      if (pid) m.set(pid, (m.get(pid) ?? 0) + 1);
+    }
+    return m;
+  }, []);
+
+  // Suggestions live : on filtre PROFESSIONS par match (label, frLabel, short,
+  // synonymes) et on trie par nb de talents disponibles.
+  const liveSuggestions = useMemo(() => {
+    const q = normalizeName(query.trim());
+    if (!q || q.length < 2) return [];
+    return PROFESSIONS.filter((p) => {
+      const hay = [p.label, p.frLabel, p.short, p.frShort, ...(p.synonyms ?? [])]
+        .map((s) => normalizeName(s ?? ""))
+        .join(" ");
+      return hay.includes(q);
+    })
+      .sort((a, b) => {
+        const cb = talentCountByProfession.get(b.id) ?? 0;
+        const ca = talentCountByProfession.get(a.id) ?? 0;
+        return cb - ca;
+      })
+      .slice(0, 5);
+  }, [query, talentCountByProfession]);
+
+  // Suggestions par défaut (chips sous la search) — métiers populaires.
+  const defaultSuggestions = useMemo(() => {
+    return SUGGESTED_PROFESSION_IDS
+      .map((id) => PROFESSIONS.find((p) => p.id === id))
+      .filter((p): p is (typeof PROFESSIONS)[number] => p !== undefined);
+  }, []);
+
+  const goToProfession = (professionId: string) => {
+    router.push(`/chasse?profession=${encodeURIComponent(professionId)}`);
+  };
+
   const onSearch = (e: React.FormEvent) => {
     e.preventDefault();
+    // Si une suggestion live matche, on y va. Sinon, on fallback /chasse
+    // avec la query brute (l'utilisateur affinera dans la search interne).
+    if (liveSuggestions[0]) {
+      goToProfession(liveSuggestions[0].id);
+      return;
+    }
     const q = query.trim();
     router.push(q ? `/chasse?q=${encodeURIComponent(q)}` : "/chasse");
   };
@@ -152,9 +202,10 @@ export function StudioHero() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.currentTarget.value)}
-                placeholder="Animateur 3D Senior, Paris, disponible…"
+                placeholder="Animateur 3D, Frontend, Boulanger…"
                 className="flex-1 h-11 bg-transparent text-[15px] text-mist-50 placeholder:text-mist-400 outline-none"
-                aria-label="Rechercher un talent"
+                aria-label="Rechercher un métier"
+                autoComplete="off"
               />
               <motion.button
                 type="submit"
@@ -174,12 +225,58 @@ export function StudioHero() {
               </motion.button>
             </div>
 
-            {/* Filter button discret */}
-            <p className="mt-3 text-[11.5px] text-mist-400 flex items-center justify-center gap-1.5">
-              <Filter className="h-3 w-3" strokeWidth={2.6} />
-              17 filtres avancés disponibles · ville, disponibilité, score min,
-              ligue, années d&apos;exp, software, langue…
-            </p>
+            {/* FIX-7 : dropdown de suggestions live. Visible dès que l'user
+                tape ≥ 2 lettres. Clic sur une suggestion = redirect direct
+                vers /chasse?profession=X (skip la search redondante). */}
+            {liveSuggestions.length > 0 && (
+              <div
+                className="mt-2 mx-auto max-w-2xl rounded-2xl bg-white ring-1 ring-inset ring-ink-700/10 shadow-card overflow-hidden"
+                style={{ boxShadow: "0 12px 32px -8px rgba(10,20,30,0.18)" }}
+              >
+                <p className="px-4 pt-3 pb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-mist-400 inline-flex items-center gap-1.5">
+                  <Target className="h-3 w-3 text-night-700" strokeWidth={2.8} />
+                  Métiers qui matchent · va direct aux profils
+                </p>
+                <ul>
+                  {liveSuggestions.map((p) => {
+                    const count = talentCountByProfession.get(p.id) ?? 0;
+                    return (
+                      <li key={p.id}>
+                        <button
+                          type="button"
+                          onClick={() => goToProfession(p.id)}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-ink-50 transition group"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="font-display text-[14px] font-black tracking-tight text-mist-50 truncate">
+                              {p.frLabel}
+                            </p>
+                            <p className="text-[11.5px] text-mist-400">
+                              {count > 0
+                                ? `${count} profil${count > 1 ? "s" : ""} classé${count > 1 ? "s" : ""}`
+                                : "Pas encore de profil"}
+                            </p>
+                          </div>
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-night-700 group-hover:translate-x-0.5 transition">
+                            Voir
+                            <ArrowRight className="h-3 w-3" strokeWidth={2.8} />
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            )}
+
+            {/* Filter button discret — caché quand le dropdown est ouvert */}
+            {liveSuggestions.length === 0 && (
+              <p className="mt-3 text-[11.5px] text-mist-400 flex items-center justify-center gap-1.5">
+                <Filter className="h-3 w-3" strokeWidth={2.6} />
+                17 filtres avancés disponibles · ville, disponibilité, score min,
+                ligue, années d&apos;exp, software, langue…
+              </p>
+            )}
           </motion.form>
 
           {/* Suggested searches */}
@@ -193,21 +290,18 @@ export function StudioHero() {
               <Sparkles className="inline-block h-3 w-3 -mt-0.5 mr-1" strokeWidth={2.6} />
               Suggestions
             </span>
-            {SUGGESTED_SEARCHES.map((s) => (
+            {defaultSuggestions.map((p) => (
               <button
-                key={s}
+                key={p.id}
                 type="button"
-                onClick={() => {
-                  setQuery(s);
-                  router.push(`/chasse?q=${encodeURIComponent(s)}`);
-                }}
+                onClick={() => goToProfession(p.id)}
                 className={cn(
                   "inline-flex h-7 items-center rounded-full bg-white ring-1 ring-inset ring-ink-700/10",
                   "px-2.5 text-[11.5px] font-bold text-mist-100",
                   "hover:bg-night-700 hover:text-white hover:ring-night-700 transition",
                 )}
               >
-                {s}
+                {p.frLabel}
               </button>
             ))}
           </motion.div>

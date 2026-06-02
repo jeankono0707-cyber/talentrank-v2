@@ -51,13 +51,20 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   initialClass: ExperienceClassId | null;
+  /** FIX-7 : métier pré-sélectionné depuis ?profession=X (search /studio). */
+  initialProfession?: string | null;
 }
 
 type Step = "class" | "profession" | "class-for-profession" | "results";
 
-export function ChasseClient({ initialClass }: Props) {
+export function ChasseClient({ initialClass, initialProfession = null }: Props) {
   const [pickedClass, setPickedClass] = useState<ExperienceClassId | null>(initialClass);
-  const [pickedProfession, setPickedProfession] = useState<string | null>(null);
+  // FIX-7 : si on arrive avec ?profession=X depuis la search studio, on
+  // skip directement à l'étape "class-for-profession" (cartes de classes
+  // avec compteurs pour ce métier). Plus de double recherche.
+  const [pickedProfession, setPickedProfession] = useState<string | null>(
+    initialProfession,
+  );
 
   // Logique du flow :
   //  - QuickSearch (métier choisi en premier) → class-for-profession
