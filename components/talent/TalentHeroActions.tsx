@@ -8,6 +8,7 @@ import { ProposeInterviewModal } from "@/components/recruiter/ProposeInterviewMo
 import { MessageComposerModal } from "@/components/talent/MessageComposerModal";
 import { ShareScoreModal } from "@/components/share/ShareScoreCard";
 import { listMessagesForTalent, subscribeMessages } from "@/lib/messages";
+import { useAudience } from "@/lib/audience/client";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -37,6 +38,7 @@ export function TalentHeroActions({ talent }: Props) {
   const [messageOpen, setMessageOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [sentCount, setSentCount] = useState(0);
+  const { audience } = useAudience();
 
   const canShare =
     talent.score != null &&
@@ -44,53 +46,64 @@ export function TalentHeroActions({ talent }: Props) {
     talent.professionId != null &&
     talent.professionLabelFr != null;
 
+  // Actions recruteur (proposer entretien / message / shortlist) : studio
+  // uniquement. Un talent qui visite le profil d'un autre talent ne peut que
+  // regarder le travail + partager s'il s'agit du sien.
+  const isStudio = audience === "studio";
+
   // Subscribe to message store so the badge updates after sending.
   useEffect(() => {
+    if (!isStudio) return;
     return subscribeMessages(() => {
       setSentCount(listMessagesForTalent(talent.id).length);
     });
-  }, [talent.id]);
+  }, [talent.id, isStudio]);
 
   return (
     <>
       <div className="mt-7 flex flex-wrap items-center gap-2">
-        {/* Primary: formal interview proposal (3-step structured flow) */}
-        <Button variant="primary" size="md" onClick={() => setProposeOpen(true)}>
-          <MessageSquarePlus className="h-4 w-4" strokeWidth={2.4} />
-          Proposer un entretien
-        </Button>
+        {/* Recruiter actions — studio uniquement */}
+        {isStudio && (
+          <>
+            <Button variant="primary" size="md" onClick={() => setProposeOpen(true)}>
+              <MessageSquarePlus className="h-4 w-4" strokeWidth={2.4} />
+              Proposer un entretien
+            </Button>
 
-        {/* New: free-form direct message (lightweight, no structure) */}
-        <Button variant="glass" size="md" onClick={() => setMessageOpen(true)}>
-          <MessageCircle className="h-4 w-4" strokeWidth={2.4} />
-          Envoyer un message
-          {sentCount > 0 && (
-            <span className="ml-1 inline-flex items-center justify-center rounded-full bg-cyan-400/25 ring-1 ring-inset ring-cyan-400/40 px-1.5 font-display text-[10.5px] font-black tabular-nums leading-none min-w-[18px] h-[16px] text-cyan-200">
-              {sentCount}
-            </span>
-          )}
-        </Button>
+            <Button variant="glass" size="md" onClick={() => setMessageOpen(true)}>
+              <MessageCircle className="h-4 w-4" strokeWidth={2.4} />
+              Envoyer un message
+              {sentCount > 0 && (
+                <span className="ml-1 inline-flex items-center justify-center rounded-full bg-cyan-400/25 ring-1 ring-inset ring-cyan-400/40 px-1.5 font-display text-[10.5px] font-black tabular-nums leading-none min-w-[18px] h-[16px] text-cyan-200">
+                  {sentCount}
+                </span>
+              )}
+            </Button>
 
-        <Button
-          variant={saved ? "amber" : "glass"}
-          size="md"
-          onClick={() => setSaved((v) => !v)}
-        >
-          <Bookmark className={cn("h-4 w-4", saved && "fill-ink-950")} strokeWidth={2.4} />
-          {saved ? "Ajouté à la shortlist" : "Ajouter à la shortlist"}
-        </Button>
+            <Button
+              variant={saved ? "amber" : "glass"}
+              size="md"
+              onClick={() => setSaved((v) => !v)}
+            >
+              <Bookmark className={cn("h-4 w-4", saved && "fill-ink-950")} strokeWidth={2.4} />
+              {saved ? "Ajouté à la shortlist" : "Ajouter à la shortlist"}
+            </Button>
+          </>
+        )}
 
+        {/* Partager : utile pour tous (le talent qui flexe son score,
+            le studio qui transmet le profil en interne). */}
         {canShare && (
-          <Button variant="ghost" size="md" onClick={() => setShareOpen(true)}>
+          <Button variant={isStudio ? "ghost" : "primary"} size="md" onClick={() => setShareOpen(true)}>
             <Share2 className="h-4 w-4" /> Partager
           </Button>
         )}
       </div>
 
-      {proposeOpen && (
+      {isStudio && proposeOpen && (
         <ProposeInterviewModal talent={talent} onClose={() => setProposeOpen(false)} />
       )}
-      {messageOpen && (
+      {isStudio && messageOpen && (
         <MessageComposerModal talent={talent} onClose={() => setMessageOpen(false)} />
       )}
       <AnimatePresence>
