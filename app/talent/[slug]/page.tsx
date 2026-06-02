@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Briefcase,
   Clock,
@@ -11,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { Badge, Pill } from "@/components/ui/Badge";
 import { ScoreRing } from "@/components/ui/ScoreRing";
 import { ButtonLink } from "@/components/ui/Button";
@@ -92,13 +92,12 @@ export default async function TalentPage({ params }: { params: Promise<{ slug: s
       {/* Hero section (action buttons + score panel) — cream refactor #38 */}
       <section className="relative pt-12 pb-12">
         <div className="container-page">
-          <Link
-            href="/explore"
-            className="inline-flex items-center gap-1.5 text-[12px] font-bold text-mist-400 hover:text-mist-50 transition"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.6} />
-            Retour à l&apos;exploration
-          </Link>
+          {/* Retour intelligent : si l'historique existe → router.back() ;
+              sinon → /ranking/[profession] si dispo, sinon /metiers. */}
+          <SmartBackButton
+            fallbackHref={profession ? `/ranking/${profession.id}` : "/metiers"}
+            label="Retour"
+          />
 
           <div className="mt-8 grid gap-10 lg:grid-cols-[1.4fr_1fr] lg:items-start">
             <div>

@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Crown, MapPin, Sparkles, X } from "lucide-react";
 import { AvatarChip } from "@/components/ui/AvatarChip";
 import { CrosshairOverlay } from "@/components/hunter/CrosshairOverlay";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { getCategory, getProfession, professionLabel } from "@/lib/professions";
 import { iconForCategory } from "@/lib/profession-icons";
 import { findCountry } from "@/lib/countries";
@@ -111,6 +112,10 @@ export function ProfessionRankingClient({ professionId }: Props) {
 
   return (
     <div className="container-page pt-24 pb-20">
+      {/* Bouton retour intelligent — fallback vers la catégorie. */}
+      <div className="mb-3">
+        <SmartBackButton fallbackHref={`/metiers/${category.id}`} label="Retour" />
+      </div>
       {/* Breadcrumb */}
       <div className="flex flex-wrap items-center gap-1.5 text-[12px] font-semibold text-mist-400">
         <Link href="/metiers" className="hover:text-mist-50 transition">

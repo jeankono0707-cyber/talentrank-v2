@@ -33,6 +33,7 @@ import { getProfession, professionLabel } from "@/lib/professions";
 import { getTalentsByProfession } from "@/lib/mock-talents";
 import { useTalentProfile } from "@/lib/profile/storage";
 import { ShareScoreCard } from "@/components/share/ShareScoreCard";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { track } from "@/lib/analytics/events";
 import { cn } from "@/lib/utils";
 
@@ -132,6 +133,8 @@ export function QcmResultClient({ bank }: Props) {
   return (
     <div className="container-page pt-16 pb-20">
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Retour intelligent : QCM principal par défaut. */}
+        <SmartBackButton fallbackHref="/qcm" label="Retour aux évaluations" />
         <Hero
           score={score}
           tier={tier}

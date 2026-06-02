@@ -3,7 +3,17 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowLeft, ChevronDown, MessageSquarePlus } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronDown,
+  MessageSquarePlus,
+  Pin,
+  PinOff,
+  Search,
+  Target,
+  X,
+} from "lucide-react";
 import { ClassPicker } from "./ClassPicker";
 import { ProfessionPicker } from "./ProfessionPicker";
 import { ProposeInterviewModal } from "./ProposeInterviewModal";
@@ -13,6 +23,7 @@ import { ExperienceBadge } from "@/components/ui/ExperienceBadge";
 import { AvailabilityDot } from "@/components/ui/AvailabilityDot";
 import { CanvasRevealEffect } from "@/components/ui/canvas-reveal";
 import { Flag } from "@/components/ui/Flag";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import {
   EXPERIENCE_CLASSES,
   type ExperienceClassId,
@@ -20,8 +31,13 @@ import {
 } from "@/lib/experience-class";
 import { findCountry } from "@/lib/countries";
 import { getDiscipline } from "@/lib/disciplines";
-import { PROFESSIONS, type ProfessionCategoryId } from "@/lib/professions";
+import {
+  PROFESSIONS,
+  normalizeName,
+  type ProfessionCategoryId,
+} from "@/lib/professions";
 import { tierForPercentile } from "@/lib/tiers";
+import { togglePin, usePinnedProfessions } from "@/lib/pinning/professions";
 import {
   TALENTS,
   talentProfessionId,
@@ -73,7 +89,32 @@ export function ChasseClient({ initialClass }: Props) {
         />
       </div>
 
-      <div className="container-page relative pt-28 pb-20">
+      <div className="container-page relative pt-12 pb-20">
+        {/* Retour intelligent — fallback vers le dashboard studio. */}
+        <SmartBackButton fallbackHref="/studio" label="Retour" />
+
+        {/* ─── Quick search + pinned : seulement à l'étape 1 (entrée).
+            Permet de skip le flow guidé et aller direct à un métier ciblé. */}
+        {step === "class" && (
+          <div className="mt-6 mb-10 max-w-3xl mx-auto">
+            <QuickProfessionSearch
+              onPick={(professionId) => {
+                // Skip les 2 étapes : on prend la classe "A" (Senior) par
+                // défaut. Le studio pourra changer via "Affiner les résultats"
+                // une fois dans la vue des profils.
+                setPickedClass("A");
+                setPickedProfession(professionId);
+              }}
+            />
+            <PinnedProfessionsSection
+              onPick={(professionId) => {
+                setPickedClass("A");
+                setPickedProfession(professionId);
+              }}
+            />
+          </div>
+        )}
+
         <Stepper current={step} />
 
         {/* Conditional rendering — no AnimatePresence (was causing the step-2
@@ -82,7 +123,7 @@ export function ChasseClient({ initialClass }: Props) {
         {step === "class" && (
           <div key="class-step" className="animate-rise-in">
             <StepHeader
-              eyebrow="Étape 1 sur 3"
+              eyebrow="Ou choisis pas à pas · Étape 1 sur 3"
               title="Quelle classe cherches-tu ?"
               subtitle="Du Junior au Maître absolu. Choisis le niveau d'expérience."
             />
@@ -555,5 +596,224 @@ function TalentRow({
         <span className="hidden sm:inline">Entretien</span>
       </button>
     </motion.div>
+  );
+}
+
+// ─── Quick profession search (FIX-2) ────────────────────────────────────────
+// Search bar avec autocomplete précis. Quand l'utilisateur tape "Animateur 3D"
+// on lui propose les métiers qui matchent. Le clic ouvre directement la liste
+// des profils de ce métier (skip Classe + Métier picker).
+function QuickProfessionSearch({
+  onPick,
+}: {
+  onPick: (professionId: string) => void;
+}) {
+  const [query, setQuery] = useState("");
+
+  // Compteur de talents par métier — pour mettre en avant les vivants.
+  const talentCountByProfession = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const t of TALENTS) {
+      const pid = talentProfessionId(t);
+      if (pid) m.set(pid, (m.get(pid) ?? 0) + 1);
+    }
+    return m;
+  }, []);
+
+  const matches = useMemo(() => {
+    const q = normalizeName(query.trim());
+    if (!q) return [];
+    return PROFESSIONS.filter((p) => {
+      const hay = [p.label, p.frLabel, p.short, p.frShort, ...(p.synonyms ?? [])]
+        .map((s) => normalizeName(s ?? ""))
+        .join(" ");
+      return hay.includes(q);
+    })
+      .sort((a, b) => {
+        // Prioritise les métiers qui ont des talents.
+        const cb = talentCountByProfession.get(b.id) ?? 0;
+        const ca = talentCountByProfession.get(a.id) ?? 0;
+        return cb - ca;
+      })
+      .slice(0, 6);
+  }, [query, talentCountByProfession]);
+
+  return (
+    <div className="card-white p-5 sm:p-6">
+      <div className="flex items-center gap-2 mb-3">
+        <Target className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.8} />
+        <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+          Recherche rapide · va direct aux profils
+        </h2>
+      </div>
+
+      <div
+        className="relative flex items-center gap-2 rounded-full bg-white ring-2 ring-ink-700/10 focus-within:ring-amber-300/60 transition-all duration-200 pl-5 pr-2 py-2"
+        style={{
+          boxShadow:
+            "0 1px 0 rgba(255,255,255,0.85) inset, 0 8px 24px -12px rgba(0,0,0,0.12)",
+        }}
+      >
+        <Search
+          className="h-[18px] w-[18px] text-mist-400 shrink-0"
+          strokeWidth={2.4}
+        />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.currentTarget.value)}
+          placeholder='Ex: "Animateur 3D", "Character Artist", "Frontend"…'
+          className="h-11 flex-1 bg-transparent text-[15px] text-mist-50 placeholder:text-mist-400 outline-none"
+          aria-label="Rechercher un métier précis"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Effacer la recherche"
+            className="grid h-8 w-8 place-items-center rounded-full text-mist-400 hover:text-mist-100 hover:bg-ink-50 transition"
+          >
+            <X className="h-4 w-4" strokeWidth={2.4} />
+          </button>
+        )}
+      </div>
+
+      {query && (
+        <div className="mt-3">
+          {matches.length === 0 ? (
+            <p className="text-[12.5px] text-mist-400 text-center py-3">
+              Aucun métier ne matche &laquo;{query}&raquo;. Essaie un autre
+              terme ou utilise le flow guidé ci-dessous.
+            </p>
+          ) : (
+            <ul className="space-y-1.5">
+              {matches.map((p) => {
+                const count = talentCountByProfession.get(p.id) ?? 0;
+                return (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      onClick={() => onPick(p.id)}
+                      className="w-full flex items-center gap-3 rounded-xl bg-ink-50 hover:bg-amber-50 ring-1 ring-inset ring-ink-700/10 hover:ring-amber-300/40 px-3.5 py-2.5 text-left transition group"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-display text-[14px] font-black tracking-tight text-mist-50 truncate">
+                          {p.frLabel}
+                        </p>
+                        <p className="text-[11.5px] text-mist-400">
+                          {count > 0
+                            ? `${count} profil${count > 1 ? "s" : ""} classé${count > 1 ? "s" : ""}`
+                            : "Pas encore de profil"}
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 group-hover:translate-x-0.5 transition">
+                        Voir les profils
+                        <ArrowRight className="h-3 w-3" strokeWidth={2.8} />
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {!query && (
+        <p className="mt-3 text-[11.5px] text-mist-400 text-center">
+          Trouve ton métier précis →{" "}
+          <span className="font-bold text-mist-100">
+            tu arrives sur les profils filtrés sans étape intermédiaire
+          </span>
+          .
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Pinned professions section (FIX-3) ─────────────────────────────────────
+// Affiche les métiers que le studio a épinglés pour y revenir vite. Vide par
+// défaut — pas de placeholder bruyant si rien n'est pinné.
+function PinnedProfessionsSection({
+  onPick,
+}: {
+  onPick: (professionId: string) => void;
+}) {
+  const { pinned } = usePinnedProfessions();
+
+  // Compteur de talents
+  const talentCountByProfession = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const t of TALENTS) {
+      const pid = talentProfessionId(t);
+      if (pid) m.set(pid, (m.get(pid) ?? 0) + 1);
+    }
+    return m;
+  }, []);
+
+  const pinnedProfessions = useMemo(() => {
+    return pinned
+      .map((id) => PROFESSIONS.find((p) => p.id === id))
+      .filter((p): p is (typeof PROFESSIONS)[number] => p !== undefined);
+  }, [pinned]);
+
+  if (pinnedProfessions.length === 0) return null;
+
+  return (
+    <section className="mt-5">
+      <div className="flex items-center gap-2 mb-3">
+        <Pin className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.8} />
+        <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+          Métiers épinglés · {pinnedProfessions.length}
+        </h2>
+        <span className="h-px flex-1 bg-amber-200/60" />
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {pinnedProfessions.map((p) => {
+          const count = talentCountByProfession.get(p.id) ?? 0;
+          return (
+            <div key={p.id} className="relative">
+              <button
+                type="button"
+                onClick={() => onPick(p.id)}
+                className="w-full flex items-center gap-3 rounded-2xl bg-white ring-1 ring-inset ring-amber-300/40 hover:ring-amber-400/60 hover:-translate-y-0.5 transition-all px-3.5 py-3 text-left shadow-card"
+                style={{
+                  boxShadow:
+                    "0 6px 18px -8px rgba(180,83,9,0.20), inset 0 1px 0 rgba(255,255,255,0.5)",
+                }}
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-display text-[13.5px] font-black tracking-tight text-mist-50 truncate">
+                    {p.frLabel}
+                  </p>
+                  <p className="text-[11px] text-mist-400">
+                    {count > 0
+                      ? `${count} profil${count > 1 ? "s" : ""}`
+                      : "Aucun profil"}
+                  </p>
+                </div>
+                <ArrowRight
+                  className="h-4 w-4 text-amber-700 shrink-0"
+                  strokeWidth={2.6}
+                />
+              </button>
+              {/* Bouton désépingler — overlay top-right */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  togglePin(p.id);
+                }}
+                aria-label={`Désépingler ${p.frLabel}`}
+                className="absolute top-1 right-1 grid h-6 w-6 place-items-center rounded-full bg-white/90 text-amber-700 hover:bg-amber-100 transition"
+              >
+                <PinOff className="h-3 w-3" strokeWidth={2.6} />
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

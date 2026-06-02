@@ -15,6 +15,7 @@ import {
 import { allProfessionStatsForCategory } from "@/lib/profession-stats";
 import { iconForCategory } from "@/lib/profession-icons";
 import { tierForPercentile } from "@/lib/tiers";
+import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -48,14 +49,8 @@ export function MetiersCategoryClient({ categoryId }: Props) {
 
   return (
     <div className="container-page pt-28 pb-20">
-      {/* Breadcrumb */}
-      <Link
-        href="/metiers"
-        className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-mist-400 hover:text-mist-50 transition"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.6} />
-        Toutes les catégories
-      </Link>
+      {/* Retour intelligent : fallback vers la liste des catégories. */}
+      <SmartBackButton fallbackHref="/metiers" label="Toutes les catégories" />
 
       {/* Header */}
       <div className="mt-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
