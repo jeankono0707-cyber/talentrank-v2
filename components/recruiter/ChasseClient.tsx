@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -1187,6 +1187,22 @@ function CategoryAisles({
   const [expandedCategory, setExpandedCategory] =
     useState<ProfessionCategoryId | null>(null);
 
+  // FIX-8c : auto-scroll vers la liste de métiers quand on déplie un rayon.
+  // Évite à l'utilisateur de scroller manuellement pour voir les profils
+  // quand la grille de catégories est haute.
+  const expandedListRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!expandedCategory || !expandedListRef.current) return;
+    // Délai léger pour laisser l'animation s'amorcer
+    const t = setTimeout(() => {
+      expandedListRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }, 150);
+    return () => clearTimeout(t);
+  }, [expandedCategory]);
+
   const talentCountByProfession = useMemo(() => {
     const m = new Map<string, number>();
     for (const t of TALENTS) {
@@ -1237,48 +1253,61 @@ function CategoryAisles({
         </p>
       </div>
 
-      {/* Grille des catégories — style Duolingo / iOS tile (FIX-8b) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* Grille des catégories — compacte (FIX-8c). Plus de colonnes pour
+          réduire la taille des cards individuelles + saturation boostée. */}
+      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-2.5">
         {PROFESSION_CATEGORIES.map((cat, i) => {
           const stats = categoryStats.get(cat.id) ?? {
             professionCount: 0,
             talentCount: 0,
           };
           const isExpanded = expandedCategory === cat.id;
+          const isEmpty = stats.talentCount === 0;
           const CatIcon = iconForCategory(cat.id);
           const emoji = CATEGORY_EMOJI[cat.id];
+
+          // Saturation : tile pleine couleur. Si expanded → encore plus saturé
+          // (boostée via overlay sombre). Si vide → légèrement désaturé.
+          const baseColor = cat.color;
+          const bgStyle = isExpanded
+            ? {
+                background: `radial-gradient(120% 100% at 30% 0%, ${baseColor} 0%, ${baseColor}f0 60%, ${baseColor}d0 100%)`,
+                boxShadow: `0 14px 32px -8px ${baseColor}cc, inset 0 2px 0 rgba(255,255,255,0.55), inset 0 -12px 26px -8px rgba(0,0,0,0.3)`,
+              }
+            : {
+                background: `radial-gradient(120% 100% at 30% 0%, ${baseColor}f0 0%, ${baseColor}d8 60%, ${baseColor}b8 100%)`,
+                boxShadow: `0 6px 18px -6px ${baseColor}88, inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -8px 16px -8px rgba(0,0,0,0.22)`,
+                filter: isEmpty ? "saturate(0.7)" : undefined,
+              };
+
           return (
             <motion.button
               key={cat.id}
               type="button"
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: Math.min(i * 0.025, 0.4) }}
+              transition={{ duration: 0.3, delay: Math.min(i * 0.02, 0.3) }}
               onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
               aria-expanded={isExpanded}
               aria-label={`Rayon ${cat.frLabel} · ${stats.talentCount} candidats`}
-              whileHover={{ y: -3 }}
-              whileTap={{ scale: 0.96 }}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.94 }}
               className={cn(
-                "group relative aspect-square overflow-hidden rounded-3xl p-4 text-left transition-all duration-200 ring-2",
-                isExpanded ? "ring-white scale-[1.04]" : "ring-white/40",
+                "group relative aspect-square overflow-hidden rounded-2xl p-2.5 text-left transition-all duration-200",
+                "ring-2 focus:outline-none focus-visible:ring-amber-300",
+                isExpanded ? "ring-white scale-[1.06]" : "ring-white/30",
               )}
-              style={{
-                background: `radial-gradient(120% 100% at 30% 0%, ${cat.color}ee 0%, ${cat.color}cc 50%, ${cat.color}aa 100%)`,
-                boxShadow: isExpanded
-                  ? `0 16px 40px -10px ${cat.color}cc, inset 0 2px 0 rgba(255,255,255,0.4), inset 0 -10px 24px -8px rgba(0,0,0,0.25)`
-                  : `0 8px 24px -8px ${cat.color}88, inset 0 2px 0 rgba(255,255,255,0.35), inset 0 -8px 18px -8px rgba(0,0,0,0.22)`,
-              }}
+              style={bgStyle}
             >
               {/* Emoji décoratif géant en arrière-plan */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute -bottom-2 -right-1 select-none transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                className="pointer-events-none absolute -bottom-1 -right-0.5 select-none transition-transform duration-300 group-hover:scale-110 group-hover:rotate-6"
                 style={{
-                  fontSize: "5.5rem",
+                  fontSize: "3.6rem",
                   lineHeight: 1,
-                  filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.25))",
-                  opacity: 0.55,
+                  filter: "drop-shadow(0 3px 8px rgba(0,0,0,0.25))",
+                  opacity: isExpanded ? 0.7 : 0.5,
                 }}
               >
                 {emoji}
@@ -1287,25 +1316,21 @@ function CategoryAisles({
               {/* Halo top-left pour effet 3D */}
               <span
                 aria-hidden
-                className="pointer-events-none absolute -top-6 -left-6 h-20 w-20 rounded-full bg-white/30 blur-2xl"
+                className="pointer-events-none absolute -top-4 -left-4 h-12 w-12 rounded-full bg-white/40 blur-xl"
               />
 
               {/* Contenu */}
               <div className="relative h-full flex flex-col justify-between">
-                {/* Top : icon Lucide en pastille blanche translucide */}
-                <div className="flex items-start justify-between gap-2">
-                  <span
-                    className="inline-grid h-9 w-9 place-items-center rounded-xl bg-white/25 backdrop-blur-sm ring-1 ring-inset ring-white/40 shadow-sm"
-                  >
+                <div className="flex items-start justify-between gap-1">
+                  <span className="inline-grid h-7 w-7 place-items-center rounded-lg bg-white/30 backdrop-blur-sm ring-1 ring-inset ring-white/40">
                     <CatIcon
-                      className="h-4 w-4 text-white"
+                      className="h-3.5 w-3.5 text-white"
                       strokeWidth={2.8}
                     />
                   </span>
-                  {/* Pill compteur candidats */}
                   {stats.talentCount > 0 && (
                     <span
-                      className="inline-flex h-6 items-center gap-0.5 rounded-full bg-white/95 backdrop-blur-sm px-2 text-[11px] font-black tabular-nums shrink-0"
+                      className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-white px-1.5 text-[10px] font-black tabular-nums shrink-0"
                       style={{ color: cat.color }}
                     >
                       {stats.talentCount}
@@ -1313,23 +1338,19 @@ function CategoryAisles({
                   )}
                 </div>
 
-                {/* Bottom : titre + sous-texte */}
                 <div className="relative">
                   <p
-                    className="font-display text-[13px] sm:text-[14px] font-black tracking-tight text-white leading-tight"
-                    style={{
-                      textShadow: "0 2px 8px rgba(0,0,0,0.25)",
-                    }}
+                    className="font-display text-[11px] sm:text-[12px] font-black tracking-tight text-white leading-tight line-clamp-2"
+                    style={{ textShadow: "0 2px 6px rgba(0,0,0,0.3)" }}
                   >
                     {cat.frLabel}
                   </p>
                   <p
-                    className="mt-0.5 text-[10.5px] font-bold text-white/85 tabular-nums"
+                    className="mt-0.5 text-[9.5px] font-bold text-white/85 tabular-nums"
                     style={{ textShadow: "0 1px 3px rgba(0,0,0,0.2)" }}
                   >
-                    {stats.professionCount} métier
-                    {stats.professionCount > 1 ? "s" : ""}
-                    {stats.talentCount === 0 && " · vide"}
+                    {stats.professionCount}{" "}
+                    {stats.professionCount > 1 ? "métiers" : "métier"}
                   </p>
                 </div>
               </div>
@@ -1342,11 +1363,12 @@ function CategoryAisles({
       <AnimatePresence>
         {expandedCategory && (
           <motion.div
+            ref={expandedListRef}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3, ease: [0.2, 0.7, 0.2, 1] }}
-            className="overflow-hidden"
+            className="overflow-hidden scroll-mt-24"
           >
             <div className="mt-3 card-white p-4 sm:p-5">
               {(() => {
