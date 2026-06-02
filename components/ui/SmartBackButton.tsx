@@ -7,20 +7,21 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SmartBackButton — bouton retour intelligent (audit user).
+// SmartBackButton — bouton retour intelligent.
 //
-// Comportement (par ordre de priorité) :
-//   1. Si l'utilisateur a un historique de navigation dans cet onglet
-//      (history.length > 1 ET il existe un referrer dans la même origine)
-//      → router.back()
-//   2. Sinon → fallbackHref (la route "logique précédente" selon le contexte)
-//   3. Le label peut être personnalisé ; default "Retour"
+// Comportement :
+//   1. Si l'utilisateur a un historique dans cet onglet (history.length > 1)
+//      → router.back() (revient à la VRAIE page précédente du navigateur)
+//   2. Sinon (l'utilisateur a tapé l'URL ou est arrivé directement)
+//      → fallbackHref (la route "logique précédente" selon le contexte)
 //
-// Conçu pour ne JAMAIS renvoyer brutalement à l'accueil sauf si le caller
-// le demande explicitement via fallbackHref="/".
+// FIX-6 : on a retiré le check `document.referrer` qui posait problème en
+// SPA Next.js — referrer ne change pas lors des navigations client-side
+// (router.push), donc le check tombait toujours en false et on partait sur
+// le fallback même quand l'historique existait. Maintenant on fait confiance
+// à history.length.
 //
-// SSR-safe : pas d'accès à window au render initial. Le check d'historique
-// se fait dans useEffect → mount client uniquement.
+// SSR-safe : pas d'accès à window au render initial.
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -43,12 +44,13 @@ export function SmartBackButton({
   const [hasHistory, setHasHistory] = useState(false);
 
   useEffect(() => {
-    // Heuristique : si on a au moins une entrée d'historique avant la nôtre
-    // ET que le referrer est interne (même origin), alors router.back() est sûr.
     if (typeof window === "undefined") return;
-    const internal =
-      document.referrer && document.referrer.startsWith(window.location.origin);
-    setHasHistory(window.history.length > 1 && Boolean(internal));
+    // history.length > 1 = au moins une page précédente dans cet onglet.
+    // C'est suffisant : si l'utilisateur a navigué sur le site, il revient
+    // logiquement à sa page précédente. S'il est arrivé directement (URL
+    // tapée, nouveau tab depuis un favori), length === 1 et on tombe sur
+    // le fallback.
+    setHasHistory(window.history.length > 1);
   }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
