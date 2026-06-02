@@ -77,6 +77,17 @@ export function ChasseClient({ initialClass, initialProfession = null }: Props) 
   // défaut : c'est le rayon supermarché, plus visuel et immédiat.
   const [entryMode, setEntryMode] = useState<EntryMode>("explore");
 
+  // FIX-12 : retour step-aware. On track qui a été choisi en premier
+  // (classe ou métier) pour que le bouton Retour ramène à la VRAIE étape
+  // précédente — pas vers le menu principal de chasse.
+  const flowOriginRef = useRef<"class-first" | "profession-first">(
+    initialProfession ? "profession-first" : "class-first",
+  );
+  useEffect(() => {
+    if (pickedClass && !pickedProfession) flowOriginRef.current = "class-first";
+    if (pickedProfession && !pickedClass) flowOriginRef.current = "profession-first";
+  }, [pickedClass, pickedProfession]);
+
   // Logique du flow :
   //  - QuickSearch (métier choisi en premier) → class-for-profession
   //    (cartes de classes avec compteurs de profils par niveau)
@@ -119,8 +130,40 @@ export function ChasseClient({ initialClass, initialProfession = null }: Props) 
       </div>
 
       <div className="container-page relative pt-12 pb-20">
-        {/* Retour intelligent — fallback vers le dashboard studio. */}
-        <SmartBackButton fallbackHref="/studio" label="Retour" />
+        {/* FIX-12 : Retour step-aware.
+            - Sur step "class" → vraie navigation back (SmartBackButton)
+            - Sur les autres steps → reset l'état pour revenir à l'étape précédente,
+              SANS quitter la page /chasse. */}
+        {step === "class" ? (
+          <SmartBackButton fallbackHref="/studio" label="Retour" />
+        ) : (
+          <button
+            onClick={() => {
+              if (step === "results") {
+                // Revient à l'étape qui a posé la dernière info :
+                // - flow class-first : on a posé class puis profession → back = enlever profession
+                // - flow profession-first : on a posé profession puis class → back = enlever class
+                if (flowOriginRef.current === "class-first") {
+                  setPickedProfession(null);
+                } else {
+                  setPickedClass(null);
+                }
+              } else if (step === "profession") {
+                setPickedClass(null);
+              } else if (step === "class-for-profession") {
+                setPickedProfession(null);
+              }
+            }}
+            aria-label="Retour à l'étape précédente"
+            className="inline-flex items-center gap-1.5 text-[12px] font-bold text-mist-400 hover:text-mist-50 transition group"
+          >
+            <ArrowLeft
+              className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5"
+              strokeWidth={2.6}
+            />
+            Retour
+          </button>
+        )}
 
         {/* ─── Entrée (étape 1) : 3 onglets distincts (FIX-11) ──────────
             Avant : la page d'accueil empilait les rayons + recherche +
