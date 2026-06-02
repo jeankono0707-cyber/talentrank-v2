@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ChevronDown,
+  LayoutGrid,
   MessageSquarePlus,
   Pin,
   PinOff,
@@ -59,6 +60,11 @@ interface Props {
 
 type Step = "class" | "profession" | "class-for-profession" | "results";
 
+// FIX-11 : 3 onglets d'entrée distincts au lieu d'une page d'accueil
+// surchargée. L'utilisateur arrive sur "explore" (rayons par défaut) puis
+// peut switcher vers "search" (par nom) ou "guided" (Chasse classe → métier).
+type EntryMode = "explore" | "search" | "guided";
+
 export function ChasseClient({ initialClass, initialProfession = null }: Props) {
   const [pickedClass, setPickedClass] = useState<ExperienceClassId | null>(initialClass);
   // FIX-7 : si on arrive avec ?profession=X depuis la search studio, on
@@ -67,6 +73,9 @@ export function ChasseClient({ initialClass, initialProfession = null }: Props) 
   const [pickedProfession, setPickedProfession] = useState<string | null>(
     initialProfession,
   );
+  // Onglet actif sur la page d'entrée (step === "class"). "explore" par
+  // défaut : c'est le rayon supermarché, plus visuel et immédiat.
+  const [entryMode, setEntryMode] = useState<EntryMode>("explore");
 
   // Logique du flow :
   //  - QuickSearch (métier choisi en premier) → class-for-profession
@@ -113,51 +122,64 @@ export function ChasseClient({ initialClass, initialProfession = null }: Props) 
         {/* Retour intelligent — fallback vers le dashboard studio. */}
         <SmartBackButton fallbackHref="/studio" label="Retour" />
 
-        {/* ─── Entrée (étape 1) : 3 façons d'arriver aux profils ─────────
-            1. Exploration par rayon (FIX-8) — comme dans un supermarché
-            2. Recherche rapide texte
-            3. Métiers épinglés
-            4. (Ou le flow guidé Classe → Métier juste en dessous) */}
+        {/* ─── Entrée (étape 1) : 3 onglets distincts (FIX-11) ──────────
+            Avant : la page d'accueil empilait les rayons + recherche +
+            métiers épinglés + carousel de classes en une seule scroll
+            verticale → trop chargé, confus.
+            Maintenant : 3 onglets clairs, "Explorer" (rayons) par défaut.
+            La page d'accueil = un seul outil à la fois.
+        ─────────────────────────────────────────────────────────────── */}
         {step === "class" && (
           <div className="mt-6 mb-10 max-w-5xl mx-auto">
-            <CategoryAisles
-              onPickProfession={(professionId) => setPickedProfession(professionId)}
-            />
-            <div className="mt-8 max-w-3xl mx-auto">
-              <QuickProfessionSearch
-                onPick={(professionId) => {
-                  // FIX-4 : on ne fixe PAS la classe — on laisse l'utilisateur
-                  // choisir parmi les 6 niveaux, avec compteur par niveau pour
-                  // ce métier (step "class-for-profession").
-                  setPickedProfession(professionId);
-                }}
-              />
-              <PinnedProfessionsSection
-                onPick={(professionId) => {
-                  setPickedProfession(professionId);
-                }}
-              />
-            </div>
+            <EntryTabs current={entryMode} onChange={setEntryMode} />
+
+            {entryMode === "explore" && (
+              <div key="explore-tab" className="mt-8 animate-rise-in">
+                <CategoryAisles
+                  onPickProfession={(professionId) =>
+                    setPickedProfession(professionId)
+                  }
+                />
+              </div>
+            )}
+
+            {entryMode === "search" && (
+              <div
+                key="search-tab"
+                className="mt-8 max-w-3xl mx-auto animate-rise-in"
+              >
+                <QuickProfessionSearch
+                  onPick={(professionId) => {
+                    setPickedProfession(professionId);
+                  }}
+                />
+                <PinnedProfessionsSection
+                  onPick={(professionId) => {
+                    setPickedProfession(professionId);
+                  }}
+                />
+              </div>
+            )}
+
+            {entryMode === "guided" && (
+              <div key="guided-tab" className="mt-8 animate-rise-in">
+                <Stepper current={step} />
+                <StepHeader
+                  eyebrow="Chasse pas à pas · Étape 1 sur 3"
+                  title="Quelle classe cherches-tu ?"
+                  subtitle="Du Junior au Maître absolu. Choisis le niveau d'expérience."
+                />
+                <div className="mt-12 flex justify-center">
+                  <ClassPicker onSelect={setPickedClass} />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        <Stepper current={step} />
-
-        {/* Conditional rendering — no AnimatePresence (was causing the step-2
-            content to be stuck at opacity 0 on transition). Each step uses
-            the `animate-rise-in` Tailwind keyframe for a soft fade-up. */}
-        {step === "class" && (
-          <div key="class-step" className="animate-rise-in">
-            <StepHeader
-              eyebrow="Ou choisis pas à pas · Étape 1 sur 3"
-              title="Quelle classe cherches-tu ?"
-              subtitle="Du Junior au Maître absolu. Choisis le niveau d'expérience."
-            />
-            <div className="mt-12 flex justify-center">
-              <ClassPicker onSelect={setPickedClass} />
-            </div>
-          </div>
-        )}
+        {/* Stepper n'est plus visible sur step "class" (intégré dans l'onglet
+            "guided" ci-dessus). Pour les autres steps, on l'affiche normalement. */}
+        {step !== "class" && <Stepper current={step} />}
 
         {/* ─── Step "class-for-profession" (FIX-4) ───────────────────────
             Métier choisi via QuickSearch ou Pin → on demande la classe avec
@@ -231,6 +253,103 @@ export function ChasseClient({ initialClass, initialProfession = null }: Props) 
             />
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ─── EntryTabs (FIX-11) ───────────────────────────────────────────────────
+// Segmented control en haut de la page d'accueil de /chasse. 3 onglets pour
+// choisir COMMENT trouver des talents :
+//   • Explorer  → par rayon de catégorie (cards colorées style supermarché)
+//   • Recherche → par nom de métier (champ texte + métiers épinglés)
+//   • Chasse    → pas à pas par classe d'expérience (S/A/B/C/D/E)
+//
+// On reste sur l'onglet sélectionné jusqu'à ce que l'utilisateur clique
+// ailleurs — c'est un onboarding visuel, pas un wizard contraint.
+//
+// Style : surélevé, ombres douces, pill arrondi, palette cream cohérente.
+// L'onglet actif est en blanc + accent ambre (signature studio).
+// ─────────────────────────────────────────────────────────────────────────────
+function EntryTabs({
+  current,
+  onChange,
+}: {
+  current: EntryMode;
+  onChange: (m: EntryMode) => void;
+}) {
+  const tabs: { id: EntryMode; label: string; sub: string; Icon: typeof LayoutGrid }[] = [
+    {
+      id: "explore",
+      label: "Explorer",
+      sub: "Par rayon",
+      Icon: LayoutGrid,
+    },
+    {
+      id: "search",
+      label: "Recherche",
+      sub: "Par nom",
+      Icon: Search,
+    },
+    {
+      id: "guided",
+      label: "Chasse",
+      sub: "Pas à pas",
+      Icon: Target,
+    },
+  ];
+
+  return (
+    <div className="mx-auto max-w-2xl">
+      <p className="text-center text-[10.5px] font-bold uppercase tracking-[0.2em] text-amber-700/70 mb-3">
+        Comment veux-tu chercher ?
+      </p>
+      <div
+        role="tablist"
+        aria-label="Mode de recherche"
+        className="grid grid-cols-3 gap-2 rounded-2xl bg-white/60 backdrop-blur-sm p-2 ring-1 ring-inset ring-ink-700/10 shadow-card"
+      >
+        {tabs.map((t) => {
+          const isActive = t.id === current;
+          return (
+            <button
+              key={t.id}
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => onChange(t.id)}
+              className={cn(
+                "group relative flex flex-col items-center justify-center gap-1 rounded-xl px-3 py-3 transition-all",
+                isActive
+                  ? "bg-white shadow-card ring-1 ring-inset ring-amber-300/50"
+                  : "hover:bg-white/60",
+              )}
+            >
+              <t.Icon
+                className={cn(
+                  "h-5 w-5 transition-colors",
+                  isActive ? "text-amber-700" : "text-mist-300 group-hover:text-mist-100",
+                )}
+                strokeWidth={2.4}
+              />
+              <span
+                className={cn(
+                  "font-display text-[14px] font-bold leading-none transition-colors",
+                  isActive ? "text-night-900" : "text-mist-200 group-hover:text-mist-50",
+                )}
+              >
+                {t.label}
+              </span>
+              <span
+                className={cn(
+                  "text-[10px] font-semibold uppercase tracking-[0.12em] leading-none transition-colors",
+                  isActive ? "text-amber-700/70" : "text-mist-400 group-hover:text-mist-300",
+                )}
+              >
+                {t.sub}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
