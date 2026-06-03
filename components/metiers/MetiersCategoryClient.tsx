@@ -3,10 +3,9 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Search, Sparkles, Users } from "lucide-react";
+import { ArrowRight, Search, Sparkles, Users, Crown, TrendingUp } from "lucide-react";
 import {
   PROFESSION_CATEGORIES,
-  categoryLabel,
   professionLabel,
   professionShort,
   normalizeName,
@@ -14,13 +13,28 @@ import {
 } from "@/lib/professions";
 import { allProfessionStatsForCategory } from "@/lib/profession-stats";
 import { iconForCategory } from "@/lib/profession-icons";
-import { tierForPercentile } from "@/lib/tiers";
+import { TALENTS, talentProfessionId } from "@/lib/mock-talents";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
+import { AvatarChip } from "@/components/ui/AvatarChip";
 import { cn } from "@/lib/utils";
 
 interface Props {
   categoryId: ProfessionCategoryId;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MetiersCategoryClient — REFONTE-P2.
+//
+// Page catégorie en cream theme cohérent avec le nouveau Hub (/ranking) et
+// les pages métier (/ranking/[profession]). Chaque carte métier affiche :
+//   • Nom du métier + label EN
+//   • Nombre de talents classés
+//   • Top 1 du classement (avatar + nom + score) — preview accrocheur
+//   • Hover lift + ring catégorie
+//
+// Le but : éviter le "wall of cards" sec en donnant à voir un teaser du
+// vrai produit (le classement) directement dans la carte.
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function MetiersCategoryClient({ categoryId }: Props) {
   const cat = PROFESSION_CATEGORIES.find((c) => c.id === categoryId)!;
@@ -48,171 +62,203 @@ export function MetiersCategoryClient({ categoryId }: Props) {
   const totalTalents = allStats.reduce((sum, s) => sum + s.talentCount, 0);
 
   return (
-    <div className="container-page pt-28 pb-20">
-      {/* Retour intelligent : fallback vers la liste des catégories. */}
-      <SmartBackButton fallbackHref="/metiers" label="Toutes les catégories" />
+    <div className="relative min-h-screen">
+      {/* Soft category-tinted halo at top */}
+      <div
+        className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[300px] w-[700px] -z-10 opacity-50"
+        style={{
+          background: `radial-gradient(ellipse at center, ${cat.color}20 0%, transparent 70%)`,
+        }}
+      />
 
-      {/* Header */}
-      <div className="mt-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-5">
-        <div>
-          <div className="flex items-center gap-3">
-            <span
-              className="inline-grid h-12 w-12 place-items-center rounded-2xl ring-1 ring-inset ring-ink-700/40"
-              style={{ background: `linear-gradient(160deg, ${cat.color}30, ${cat.color}10)` }}
-            >
-              <Icon className="h-6 w-6" strokeWidth={2.5} style={{ color: cat.color }} />
-            </span>
-            <div>
-              <p
-                className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
-                style={{ color: cat.color }}
-              >
-                {categoryLabel(cat, "en")}
-              </p>
-              <h1 className="mt-0.5 font-display text-display-md font-bold tracking-tight text-mist-50">
-                {categoryLabel(cat, "fr")}
-              </h1>
-            </div>
-          </div>
-        </div>
-        <div className="flex flex-wrap gap-2 text-[12px] text-mist-300">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-875/70 ring-1 ring-inset ring-ink-700/40 px-3 py-1">
-            <Sparkles className="h-3.5 w-3.5" strokeWidth={2.4} style={{ color: cat.color }} />
-            <strong className="text-mist-50">{activeCount}</strong> métiers actifs
-          </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-ink-875/70 ring-1 ring-inset ring-ink-700/40 px-3 py-1">
-            <Users className="h-3.5 w-3.5" strokeWidth={2.4} style={{ color: cat.color }} />
-            <strong className="text-mist-50">{totalTalents}</strong> talents
-          </span>
-        </div>
-      </div>
+      <div className="container-page pt-16 pb-24">
+        <SmartBackButton fallbackHref="/ranking" label="Tous les classements" />
 
-      {/* Search + toggle */}
-      <div className="mt-8 flex flex-col sm:flex-row gap-3">
-        <div className="flex-1 flex items-center gap-2 rounded-full bg-ink-875/70 ring-2 ring-inset ring-ink-700/40 focus-within:ring-cyan-400/60 transition px-3 py-2">
-          <Search className="ml-2 h-4 w-4 text-mist-400" strokeWidth={2.4} />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.currentTarget.value)}
-            placeholder="Filtrer les métiers de la catégorie"
-            className="h-10 flex-1 bg-transparent text-[14px] text-mist-50 placeholder:text-mist-400 outline-none"
-          />
-        </div>
-        <button
-          onClick={() => setShowEmpty((v) => !v)}
-          className={cn(
-            "inline-flex h-12 items-center gap-2 rounded-full px-4 text-[12.5px] font-semibold transition ring-1 ring-inset",
-            showEmpty
-              ? "bg-cyan-400/15 text-cyan-200 ring-cyan-400/40"
-              : "bg-ink-875/70 text-mist-300 ring-ink-700/40 hover:text-mist-50",
-          )}
+        {/* ─── Hero catégorie ─── */}
+        <motion.header
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="mt-8 text-center max-w-2xl mx-auto"
         >
-          {showEmpty ? "Cacher les métiers vides" : "Inclure les métiers sans talents"}
-        </button>
-      </div>
-
-      {/* Professions grid */}
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filtered.map((stat, i) => {
-          const p = stat.profession;
-          const empty = stat.talentCount === 0;
-          const topTier = stat.topScore !== null ? tierForPercentile(100 - stat.topScore) : null;
-          return (
-            <motion.div
-              key={p.id}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: (i % 6) * 0.03 }}
+          <div className="inline-flex items-center gap-2 rounded-full bg-white shadow-card ring-1 ring-inset ring-ink-700/10 px-3 py-1.5 mb-5">
+            <span
+              className="grid h-6 w-6 place-items-center rounded-lg"
+              style={{
+                background: `linear-gradient(160deg, ${cat.color}30, ${cat.color}10)`,
+              }}
             >
-              <Link
-                href={empty ? "#" : `/ranking/${p.id}`}
-                onClick={(e) => empty && e.preventDefault()}
-                className={cn(
-                  "card-squash group relative block overflow-hidden rounded-2xl",
-                  "border border-ink-700/40 hover:border-ink-700/70",
-                  "bg-ink-875 p-5 shadow-card hover:shadow-card-hover",
-                  empty && "cursor-not-allowed opacity-50",
-                )}
-              >
-                {/* Gradient halo */}
-                <div
-                  className={cn(
-                    "pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-25 blur-2xl transition-opacity",
-                    !empty && "group-hover:opacity-50",
-                  )}
-                  style={{ background: cat.color }}
-                />
-                <div className="relative">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-display text-[17px] font-bold leading-tight tracking-tight text-mist-50">
-                      {professionLabel(p, "fr")}
-                    </h3>
-                    {p.pending && (
-                      <span
-                        className="shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em]"
-                        style={{
-                          background: "linear-gradient(180deg, #FFEAA0, #FFC800)",
-                          color: "#1B1208",
-                          boxShadow: "0 2px 0 0 #C99A00aa, inset 0 1px 0 rgba(255,255,255,0.5)",
-                        }}
-                      >
-                        À valider
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-[12px] text-mist-400">
-                    {professionShort(p, "en")}
-                  </p>
+              <Icon className="h-3.5 w-3.5" strokeWidth={2.6} style={{ color: cat.color }} />
+            </span>
+            <span
+              className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
+              style={{ color: cat.color }}
+            >
+              Catégorie
+            </span>
+          </div>
+          <h1 className="font-display text-[36px] md:text-[48px] font-black tracking-tight leading-[1.05] text-night-900">
+            {cat.frLabel}
+          </h1>
+          <div className="mt-4 flex flex-wrap justify-center gap-2 text-[12px]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white shadow-sm ring-1 ring-inset ring-ink-700/10 px-3 py-1">
+              <Sparkles className="h-3 w-3" strokeWidth={2.6} style={{ color: cat.color }} />
+              <strong className="text-night-900">{activeCount}</strong>
+              <span className="text-mist-300">métier{activeCount > 1 ? "s" : ""}</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-white shadow-sm ring-1 ring-inset ring-ink-700/10 px-3 py-1">
+              <Users className="h-3 w-3" strokeWidth={2.6} style={{ color: cat.color }} />
+              <strong className="text-night-900">{totalTalents}</strong>
+              <span className="text-mist-300">talent{totalTalents > 1 ? "s" : ""}</span>
+            </span>
+          </div>
+        </motion.header>
 
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-mist-300">
-                        <Users className="h-3.5 w-3.5" strokeWidth={2.4} />
-                        {stat.talentCount}
-                      </span>
-                      {topTier && (
-                        <span
-                          className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em]"
-                          style={{
-                            background: `linear-gradient(180deg, ${topTier.highlight}, ${topTier.color})`,
-                            color:
-                              topTier.id === "rising" ||
-                              topTier.id === "emerging" ||
-                              topTier.id === "new"
-                                ? "#1B1208"
-                                : "#FFFFFF",
-                            boxShadow: `0 2px 0 0 ${topTier.color}aa, inset 0 1px 0 rgba(255,255,255,0.5)`,
-                          }}
-                        >
-                          Top {stat.topScore}
+        {/* ─── Search + toggle ─── */}
+        <div className="mt-10 max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
+          <div className="flex-1 flex items-center gap-2 rounded-full bg-white ring-1 ring-inset ring-ink-700/10 focus-within:ring-amber-400/60 transition px-4 py-2 shadow-card">
+            <Search className="h-4 w-4 text-mist-400" strokeWidth={2.4} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.currentTarget.value)}
+              placeholder="Filtrer les métiers"
+              className="h-9 flex-1 bg-transparent text-[14px] text-night-900 placeholder:text-mist-300 outline-none"
+            />
+          </div>
+          <button
+            onClick={() => setShowEmpty((v) => !v)}
+            className={cn(
+              "inline-flex h-11 items-center gap-2 rounded-full px-4 text-[12.5px] font-semibold transition ring-1 ring-inset whitespace-nowrap",
+              showEmpty
+                ? "bg-amber-100 text-amber-800 ring-amber-300/60"
+                : "bg-white text-mist-200 ring-ink-700/10 hover:text-mist-50 shadow-sm",
+            )}
+          >
+            {showEmpty ? "Cacher les métiers vides" : "Inclure tout"}
+          </button>
+        </div>
+
+        {/* ─── Grille des métiers — leaderboard-style cards ─── */}
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((stat, i) => {
+            const p = stat.profession;
+            const empty = stat.talentCount === 0;
+            // Top 1 du métier
+            const top1 = TALENTS.filter((t) => talentProfessionId(t) === p.id)
+              .sort((a, b) => b.score - a.score)[0];
+
+            return (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: (i % 9) * 0.04 }}
+              >
+                <Link
+                  href={empty ? "#" : `/ranking/${p.id}`}
+                  onClick={(e) => empty && e.preventDefault()}
+                  className={cn(
+                    "group relative block overflow-hidden rounded-2xl bg-white p-5 shadow-card ring-1 ring-inset ring-ink-700/10 transition-all",
+                    !empty && "hover:shadow-card-hover hover:-translate-y-1",
+                    !empty && "hover:ring-amber-300/40",
+                    empty && "cursor-not-allowed opacity-50",
+                  )}
+                >
+                  {/* Halo blur catégorie en arrière-plan */}
+                  <div
+                    className={cn(
+                      "pointer-events-none absolute -right-6 -top-6 h-20 w-20 rounded-full opacity-25 blur-2xl transition-opacity",
+                      !empty && "group-hover:opacity-40",
+                    )}
+                    style={{ background: cat.color }}
+                  />
+
+                  <div className="relative">
+                    {/* Header : titre + badge */}
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-display text-[17px] font-black tracking-tight text-night-900 leading-tight">
+                        {professionLabel(p, "fr")}
+                      </h3>
+                      {p.pending && (
+                        <span className="shrink-0 inline-flex items-center rounded-full bg-amber-100 ring-1 ring-inset ring-amber-300/60 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.12em] text-amber-800">
+                          À valider
                         </span>
                       )}
                     </div>
+                    <p className="mt-1 text-[12px] text-mist-300">
+                      {professionShort(p, "en")}
+                    </p>
 
-                    {!empty && (
-                      <span className="inline-flex items-center gap-1 text-[11.5px] font-bold uppercase tracking-[0.14em] text-cyan-300 group-hover:text-cyan-200">
-                        Voir <ArrowRight className="h-3 w-3" strokeWidth={2.8} />
-                      </span>
+                    {/* Top 1 preview — la vraie valeur d'une carte catégorie */}
+                    {top1 && !empty && (
+                      <div className="mt-4 flex items-center gap-3 rounded-xl bg-amber-50/60 ring-1 ring-inset ring-amber-300/30 p-2.5">
+                        <Crown
+                          className="h-3.5 w-3.5 text-amber-600 shrink-0"
+                          strokeWidth={2.6}
+                        />
+                        <AvatarChip
+                          initials={top1.initials}
+                          gradient={`bg-gradient-to-br ${top1.avatarGradient}`}
+                          size="sm"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-display text-[12.5px] font-bold text-night-900 leading-tight truncate">
+                            {top1.name}
+                          </p>
+                          <p className="text-[10px] text-amber-700/80 font-bold uppercase tracking-[0.1em] leading-tight">
+                            #1 · {top1.score} pts
+                          </p>
+                        </div>
+                      </div>
                     )}
-                  </div>
-                </div>
-              </Link>
-            </motion.div>
-          );
-        })}
-      </div>
 
-      {filtered.length === 0 && (
-        <div className="mt-12 mx-auto max-w-md rounded-3xl border border-ink-700/40 bg-ink-875/60 p-10 text-center">
-          <Sparkles className="mx-auto h-7 w-7 text-mist-500" strokeWidth={2.2} />
-          <p className="mt-3 font-display text-[16px] font-semibold text-mist-50">
-            Aucun métier ne correspond.
-          </p>
-          <p className="mt-1.5 text-[13px] text-mist-400">
-            Essaie une autre recherche ou inclus les métiers sans talents.
-          </p>
+                    {/* Footer : nb talents + CTA */}
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1 text-[11.5px] font-semibold text-mist-300">
+                        <Users className="h-3 w-3" strokeWidth={2.4} />
+                        {stat.talentCount} talent{stat.talentCount > 1 ? "s" : ""}
+                      </span>
+                      {!empty && (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-[0.14em] text-amber-700 group-hover:text-amber-800 transition">
+                          Voir
+                          <ArrowRight
+                            className="h-3 w-3 transition-transform group-hover:translate-x-0.5"
+                            strokeWidth={2.8}
+                          />
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            );
+          })}
         </div>
-      )}
+
+        {filtered.length === 0 && (
+          <div className="mt-12 mx-auto max-w-md rounded-3xl bg-white shadow-card ring-1 ring-inset ring-ink-700/10 p-10 text-center">
+            <Sparkles className="mx-auto h-7 w-7 text-mist-300" strokeWidth={2.2} />
+            <p className="mt-3 font-display text-[16px] font-bold text-night-900">
+              Aucun métier ne correspond.
+            </p>
+            <p className="mt-1.5 text-[13px] text-mist-300">
+              Essaie une autre recherche ou inclus les métiers sans talents.
+            </p>
+          </div>
+        )}
+
+        {/* Encouragement à explorer */}
+        {activeCount < allStats.length && !showEmpty && (
+          <div className="mt-10 text-center">
+            <p className="text-[12px] text-mist-300">
+              <TrendingUp className="inline h-3 w-3 mr-1 -mt-0.5" strokeWidth={2.6} />
+              {allStats.length - activeCount} autre{allStats.length - activeCount > 1 ? "s" : ""}{" "}
+              métier{allStats.length - activeCount > 1 ? "s" : ""} bientôt disponible{allStats.length - activeCount > 1 ? "s" : ""}.
+              Sois le premier à le{allStats.length - activeCount > 1 ? "s" : ""} classer.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
