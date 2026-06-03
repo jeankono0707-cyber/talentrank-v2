@@ -67,8 +67,10 @@
 @layer base {
   :root {
     color-scheme: light;
-    --font-headline: "Hornes", "Fredoka Variable", system-ui, sans-serif;
-    --font-menu: "Talina", "Fredoka Variable", system-ui, sans-serif;
+    --font-headline: var(--font-display), "Hornes", system-ui, sans-serif;
+    /* font-menu utilisé par la sidebar — migré de Talina (trop playful) vers
+       Sora (var --font-display) pour cohérence avec la charte v2 et lisibilité. */
+    --font-menu: var(--font-display), system-ui, sans-serif;
 
     /* ─── DESIGN SYSTEM v2 — Centralised tokens ────────────────────────── */
     /* Toute valeur visuelle réutilisée vit ICI. Les composants utilisent     */

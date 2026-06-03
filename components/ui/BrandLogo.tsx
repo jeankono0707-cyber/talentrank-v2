@@ -1,114 +1,90 @@
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BrandLogo — charte Nadia (DA officielle).
+// BrandLogo v2 — charte définitive validée par Jean-Marie.
 //
-// Variante "monogram" et "wordmark" selon le contexte d'usage :
-//   • monogram → carré night avec TR + slash ambre (favicon, app icon, avatar)
-//   • wordmark → monogram + texte "TalentRank" + baseline éventuelle
+// IDENTITÉ :
+//   • Silhouette humaine stylisée en Y (personne triomphante, bras levés)
+//     bicolore : moitié orange #FF8A00 / moitié bleu #0A1E3F
+//   • Wordmark : "Talent" en bleu profond, "Rank" en orange
+//   • Baseline optionnelle : "LE CLASSEMENT MONDIAL DES TALENTS"
 //
-// À utiliser pour TOUS les nouveaux composants brand-facing (navbar, footer,
-// landing, press kit, OG images). L'ancien <Logo /> (podium) reste pour
-// rétro-compatibilité — on remplace au fur et à mesure.
+// VALEURS PORTÉES (charte) :
+//   • Progression — la figure monte/triomphe
+//   • Excellence — bras tendus, posture victoire
+//   • Mondial — silhouette universelle, abstraction
+//   • Communauté — humain au cœur du logo
+//   • Impact — couleurs saturées, vivantes
 //
-// Anatomie :
-//   ┌─────────────┐
-//   │  T R       │ ← Sora black, blanc, tracking serré
-//   │       ╲    │ ← slash ambre 30deg, en bas-droite
-//   └─────────────┘
+// USAGE :
+//   • monogram          → carré (favicon, app icon, avatar UI)
+//   • wordmark          → silhouette + "TalentRank"
+//   • wordmark-baseline → + baseline "LE CLASSEMENT MONDIAL DES TALENTS"
 //
-// Couleurs canoniques charte :
-//   • night #0E1117
-//   • amber #F5B22E
-//   • white #FFFFFF
+// 3 skins selon le fond :
+//   • light → logo bicolore sur fond clair (défaut)
+//   • dark  → logo blanc+orange sur fond bleu profond
+//   • orange → logo blanc+bleu sur fond orange
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface BrandLogoProps {
-  /** Variante : monogram (carré seul) ou wordmark (avec texte). */
   variant?: "monogram" | "wordmark" | "wordmark-baseline";
-  /** Taille du monogramme en px. Wordmark s'ajuste auto. */
+  /** Taille de la silhouette en px. Wordmark s'ajuste auto. */
   size?: number;
-  /** Skin : "dark" (carré night, défaut) · "light" (carré blanc, pour fond foncé) · "ghost" (transparent, juste contour). */
-  skin?: "dark" | "light" | "ghost";
+  /** Adapte les couleurs au fond. */
+  skin?: "light" | "dark" | "orange";
   className?: string;
 }
 
+// Couleurs canoniques
+const BLUE = "#0A1E3F";
+const ORANGE = "#FF8A00";
+const WHITE = "#FFFFFF";
+
 export function BrandLogo({
   variant = "wordmark",
-  size = 36,
-  skin = "dark",
+  size = 40,
+  skin = "light",
   className,
 }: BrandLogoProps) {
-  const bg = skin === "light" ? "#FFFFFF" : skin === "ghost" ? "transparent" : "#0E1117";
-  const fg = skin === "light" ? "#0E1117" : "#FFFFFF";
-  const ring = skin === "ghost" ? "ring-1 ring-inset ring-brand-night/15" : "";
-  const wordmarkColor = "text-brand-night dark:text-white";
+  // Selon skin :
+  //   • light  → orange + bleu sur fond clair, "Talent" bleu / "Rank" orange
+  //   • dark   → orange + blanc sur fond bleu, "Talent" blanc / "Rank" orange
+  //   • orange → bleu + blanc sur fond orange, "Talent" blanc / "Rank" bleu
+  const figureLeft  = skin === "orange" ? BLUE   : ORANGE;
+  const figureRight = skin === "dark"   ? WHITE  : skin === "orange" ? WHITE : BLUE;
+  const wordTalent  = skin === "light"  ? BLUE   : WHITE;
+  const wordRank    = skin === "orange" ? BLUE   : ORANGE;
+  const baselineCol = skin === "light"  ? BLUE   : WHITE;
 
   return (
-    <span className={cn("inline-flex items-center gap-2.5", className)}>
-      {/* ─── Monogram ─── */}
-      <span
-        className={cn("relative inline-block overflow-hidden", ring)}
-        style={{
-          width: size,
-          height: size,
-          background: bg,
-          borderRadius: Math.round(size * 0.22),
-        }}
-        aria-hidden
-      >
-        {/* Slash ambre — diagonale traversant le bas-droit */}
-        <span
-          className="absolute block"
-          style={{
-            right: -Math.round(size * 0.06),
-            bottom: Math.round(size * 0.12),
-            width: Math.round(size * 0.55),
-            height: Math.max(2, Math.round(size * 0.11)),
-            background: "linear-gradient(90deg, #F5B22E 0%, #E0A800 100%)",
-            transform: "rotate(-30deg)",
-            transformOrigin: "right center",
-            borderRadius: Math.max(1, Math.round(size * 0.025)),
-            boxShadow: `0 ${Math.round(size * 0.06)}px ${Math.round(size * 0.16)}px -${Math.round(size * 0.04)}px rgba(245,178,46,0.4)`,
-          }}
-        />
-        {/* TR — Sora black, tracking ultra serré */}
-        <span
-          className="absolute inset-0 flex items-center justify-center font-display font-black leading-none"
-          style={{
-            color: fg,
-            fontSize: Math.round(size * 0.55),
-            letterSpacing: `-${Math.round(size * 0.04)}px`,
-            paddingTop: Math.round(size * 0.02),
-          }}
-        >
-          TR
-        </span>
-      </span>
+    <span className={cn("inline-flex items-center gap-3", className)}>
+      {/* ─── Silhouette Y ─── */}
+      <FigureY size={size} leftColor={figureLeft} rightColor={figureRight} />
 
       {/* ─── Wordmark ─── */}
       {variant !== "monogram" && (
         <span className="inline-flex flex-col leading-none">
           <span
-            className={cn(
-              "font-display font-bold tracking-tight",
-              wordmarkColor,
-            )}
+            className="font-display font-extrabold tracking-tight"
             style={{
-              fontSize: Math.round(size * 0.5),
-              letterSpacing: "-0.02em",
+              fontSize: Math.round(size * 0.62),
+              letterSpacing: "-0.025em",
+              lineHeight: 1,
             }}
           >
-            Talent
-            <span style={{ color: "#F5B22E" }}>Rank</span>
+            <span style={{ color: wordTalent }}>Talent</span>
+            <span style={{ color: wordRank }}>Rank</span>
           </span>
           {variant === "wordmark-baseline" && (
             <span
-              className="font-sans font-semibold uppercase text-brand-slate"
+              className="font-sans font-bold uppercase"
               style={{
-                fontSize: Math.round(size * 0.18),
-                letterSpacing: "0.2em",
-                marginTop: Math.round(size * 0.08),
+                color: baselineCol,
+                opacity: 0.7,
+                fontSize: Math.round(size * 0.16),
+                letterSpacing: "0.22em",
+                marginTop: Math.round(size * 0.12),
               }}
             >
               Le classement mondial des talents
@@ -117,5 +93,117 @@ export function BrandLogo({
         </span>
       )}
     </span>
+  );
+}
+
+// ─── FigureY ──────────────────────────────────────────────────────────────
+// La silhouette humaine triomphante en Y. Tête ronde, bras levés en V,
+// jambes en V renversé. Bicolore : moitié gauche / moitié droite.
+//
+// Construction symétrique sur viewBox 100×100 pour rester lisible à toutes
+// les tailles (favicon 16px → poster 4K).
+function FigureY({
+  size,
+  leftColor,
+  rightColor,
+}: {
+  size: number;
+  leftColor: string;
+  rightColor: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden
+      className="shrink-0"
+    >
+      {/* ─── MOITIÉ GAUCHE (couleur leftColor) ─── */}
+
+      {/* Bras gauche (monte vers le haut-gauche) */}
+      <path
+        d="M 50 32
+           Q 38 28 22 16
+           Q 14 11 14 18
+           Q 16 24 32 34
+           Q 42 40 50 42
+           Z"
+        fill={leftColor}
+      />
+      {/* Corps gauche (tronc) */}
+      <path
+        d="M 50 42
+           L 50 70
+           L 42 70
+           L 38 50
+           Q 42 44 50 42
+           Z"
+        fill={leftColor}
+      />
+      {/* Jambe gauche */}
+      <path
+        d="M 42 70
+           L 50 70
+           L 50 92
+           Q 50 96 46 96
+           L 32 96
+           Q 28 96 30 92
+           Z"
+        fill={leftColor}
+      />
+
+      {/* ─── MOITIÉ DROITE (couleur rightColor) ─── */}
+
+      {/* Bras droit (monte vers le haut-droite) */}
+      <path
+        d="M 50 32
+           Q 62 28 78 16
+           Q 86 11 86 18
+           Q 84 24 68 34
+           Q 58 40 50 42
+           Z"
+        fill={rightColor}
+      />
+      {/* Corps droit (tronc) */}
+      <path
+        d="M 50 42
+           L 50 70
+           L 58 70
+           L 62 50
+           Q 58 44 50 42
+           Z"
+        fill={rightColor}
+      />
+      {/* Jambe droite */}
+      <path
+        d="M 58 70
+           L 50 70
+           L 50 92
+           Q 50 96 54 96
+           L 68 96
+           Q 72 96 70 92
+           Z"
+        fill={rightColor}
+      />
+
+      {/* ─── TÊTE — split bicolor au centre ─── */}
+      {/* Moitié gauche de la tête */}
+      <path
+        d="M 50 6
+           A 9 9 0 0 0 50 24
+           Z"
+        fill={leftColor}
+      />
+      {/* Moitié droite de la tête */}
+      <path
+        d="M 50 6
+           A 9 9 0 0 1 50 24
+           Z"
+        fill={rightColor}
+      />
+    </svg>
   );
 }
