@@ -6,9 +6,7 @@ import { motion } from "framer-motion";
 import {
   Briefcase,
   CreditCard,
-  Inbox,
   type LucideIcon,
-  MessageCircle,
   UserCircle2,
   Users,
   Volume2,
@@ -77,8 +75,8 @@ const NAV_TALENT: NavItem[] = [
   { href: "/qcm",                      label: "Mon QCM",      icon: "qcm" },
   { href: "/ranking",                  label: "Classements",  icon: "ranking" },
   { href: "/dashboard/talent/profile", label: "Mon profil",   icon: "profil" },
-  { href: "/opportunites",             label: "Opportunités", lucide: Inbox,        lucideTint: "#F59E0B" },
-  { href: "/messages",                 label: "Messagerie",   lucide: MessageCircle, lucideTint: "#1CB0F6" },
+  { href: "/opportunites",             label: "Opportunités", icon: "opportunites" },
+  { href: "/messages",                 label: "Messagerie",   icon: "messagerie" },
 ];
 
 const NAV_STUDIO: NavItem[] = [
@@ -86,7 +84,7 @@ const NAV_STUDIO: NavItem[] = [
   { href: "/candidats",     label: "Candidats",    lucide: Users,         lucideTint: "#22D3EE" },
   { href: "/ranking",       label: "Classements",  icon: "ranking" },
   { href: "/qcm-builder",   label: "QCM & Éval.",  lucide: Briefcase,     lucideTint: "#A78BFA" },
-  { href: "/messages",      label: "Messagerie",   lucide: MessageCircle, lucideTint: "#1CB0F6" },
+  { href: "/messages",      label: "Messagerie",   icon: "messagerie" },
   { href: "/abonnement",    label: "Abonnement",   lucide: CreditCard,    lucideTint: "#10B981" },
 ];
 

@@ -33,6 +33,8 @@ export type SidebarIconName =
   | "qcm"
   | "studios"
   | "profil"
+  | "opportunites"
+  | "messagerie"
   | "settings"
   | "more";
 
@@ -44,11 +46,20 @@ interface Props {
 
 // Mapping nom→fichier PNG (illustrations 3D officielles, lumière chaude).
 // Quand un nom est listé ici, on rend l'image au lieu du SVG hand-built.
+//
+// MIGRATION CHARTE NADIA v5 : les 5 entrées TALENT principales utilisent
+// maintenant les icônes sur-mesure de la charte officielle (bleu+orange
+// cohérent avec le wordmark). Voir public/brand/ pour les PNG.
 const PNG_FOR: Partial<Record<SidebarIconName, { src: string; alt: string }>> = {
+  // ─── Icônes brand officielles (charte Nadia v5) ────────────────────
+  qcm:          { src: "/brand/QCM.png",          alt: "Mon QCM"      },
+  ranking:      { src: "/brand/CLASSEMENTS.png",  alt: "Classements"  },
+  profil:       { src: "/brand/PROFIL.png",       alt: "Mon profil"   },
+  opportunites: { src: "/brand/OPPORTUNITE.png",  alt: "Opportunités" },
+  messagerie:   { src: "/brand/MESSAGERIE.png",   alt: "Messagerie"   },
+  // ─── Anciens PNG illustrés (à migrer plus tard) ─────────────────────
   home:     { src: "/images/banner/1.png", alt: "Pancarte Welcome" },
   explorer: { src: "/images/banner/5.png", alt: "Carte au trésor et boussole" },
-  ranking:  { src: "/images/banner/3.png", alt: "Trophée doré sur podium" },
-  qcm:      { src: "/images/banner/2.png", alt: "Clipboard A+ avec stylo" },
   chasse:   { src: "/images/banner/4.png", alt: "Affiche Wanted Dead or Alive" },
 };
 
@@ -105,7 +116,10 @@ export function SidebarIcon({ name, size = 48, className }: Props) {
   );
 }
 
-const ICONS: Record<SidebarIconName, () => React.ReactElement> = {
+// SVG fallback hand-built — utilisé seulement quand PNG_FOR n'a pas
+// d'entrée. Partial<Record> car opportunites/messagerie n'ont pas de SVG
+// fallback (ils ne sont accessibles QUE via PNG charte).
+const ICONS: Partial<Record<SidebarIconName, () => React.ReactElement>> = {
   home: Home,
   metiers: Metiers,
   explorer: Explorer,
