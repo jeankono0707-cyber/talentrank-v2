@@ -8,6 +8,7 @@ import { ArrowLeft, Crown, MapPin, Sparkles, X } from "lucide-react";
 import { AvatarChip } from "@/components/ui/AvatarChip";
 import { CrosshairOverlay } from "@/components/hunter/CrosshairOverlay";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
+import { MyRankBanner } from "@/components/leaderboard/MyRankBanner";
 import { getCategory, getProfession, professionLabel } from "@/lib/professions";
 import { iconForCategory } from "@/lib/profession-icons";
 import { findCountry } from "@/lib/countries";
@@ -173,6 +174,20 @@ export function ProfessionRankingClient({ professionId }: Props) {
             : " · classement complet"}
         </p>
       </header>
+
+      {/* ─── MyRankBanner (REFONTE-P3) ─────────────────────────────────────
+          Bande "TOI" : rang + ligue + niveau XP + delta hebdo. Sticky compact
+          au scroll. Identity priming dès l'arrivée — le user voit son rang
+          AVANT même de scroller la liste. */}
+      {filtered.length > 0 && (
+        <div className="mt-10 max-w-3xl mx-auto">
+          <MyRankBanner
+            professionId={profession.id}
+            professionLabel={professionLabel(profession, "fr")}
+            totalTalents={filtered.length}
+          />
+        </div>
+      )}
 
       {/* ─── Filtres simples (5 dimensions max) ───────────────────────────── */}
       <FilterBar
