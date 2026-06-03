@@ -71,15 +71,27 @@ export interface Talent {
   trending?: boolean;
 }
 
+// Avatar gradients — palette retravaillée pour aligner les BLEUS avec le
+// bleu profond officiel du logo (deepblue.700 = #0A1E3F). Les gradients
+// "bleus" (cyanOcean, steelBlue, arcticCyan, brandWave) terminent tous
+// sur deepblue.{700,800,900} au lieu d'indigo/blue/slate Tailwind par
+// défaut → identité visuelle cohérente sur tous les avatars.
+//
+// Les gradients non-bleus (amber, violet, rose, emerald, lime, orange)
+// gardent leurs couleurs d'origine — la variation chromatique reste
+// importante pour distinguer les talents.
 const G = {
-  cyanOcean: "from-cyan-400 via-cyan-600 to-indigo-900",
+  // ─── Gradients bleus (harmonisés charte) ────────────────────────────
+  cyanOcean:  "from-cyan-400 via-deepblue-500 to-deepblue-800",   // cyan → bleu profond
+  steelBlue:  "from-sky-300 via-deepblue-600 to-deepblue-800",    // ciel → bleu profond
+  arcticCyan: "from-cyan-200 via-deepblue-500 to-deepblue-900",   // glace → bleu profond
+  brandWave:  "from-energy-400 via-deepblue-600 to-deepblue-900", // orange → bleu (signature charte)
+  // ─── Autres gradients (inchangés, identité multi-couleur préservée) ──
   amberSun: "from-amber-300 via-orange-500 to-rose-800",
   violetDream: "from-violet-400 via-fuchsia-500 to-indigo-900",
   emeraldDeep: "from-emerald-300 via-teal-600 to-slate-900",
   roseDusk: "from-rose-300 via-pink-500 to-purple-900",
-  steelBlue: "from-sky-300 via-blue-600 to-slate-900",
   goldNoir: "from-yellow-200 via-amber-500 to-zinc-900",
-  arcticCyan: "from-cyan-200 via-sky-500 to-blue-900",
   magmaRed: "from-orange-400 via-red-600 to-zinc-900",
   forestMist: "from-lime-300 via-emerald-600 to-slate-900",
 };
