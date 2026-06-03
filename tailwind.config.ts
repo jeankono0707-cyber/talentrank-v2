@@ -112,6 +112,21 @@ const config: Config = {
           800: "#06152D",
           900: "#030B1A",
         },
+        // ─── Bleu ciel charte (le bleu VIF du logo, palette dernière charte) ─
+        // #1E6BFF — utilisé pour les avatars, accents, états actifs.
+        // Distinct du deepblue (qui sert au fond logo + autorité).
+        skyblue: {
+          50:  "#E7EEFF",
+          100: "#C2D2FF",
+          200: "#9AB3FF",
+          300: "#6F90FF",
+          400: "#4A78FF",
+          500: "#1E6BFF",  // canonique charte
+          600: "#1758E0",
+          700: "#1247B5",
+          800: "#0D3486",
+          900: "#082354",
+        },
         // ─── Orange énergie (ramp complet) ───────────────────────────────
         energy: {
           50:  "#FFF3E0",

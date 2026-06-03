@@ -71,22 +71,22 @@ export interface Talent {
   trending?: boolean;
 }
 
-// Avatar gradients — palette retravaillée pour aligner les BLEUS avec le
-// bleu profond officiel du logo (deepblue.700 = #0A1E3F). Les gradients
-// "bleus" (cyanOcean, steelBlue, arcticCyan, brandWave) terminent tous
-// sur deepblue.{700,800,900} au lieu d'indigo/blue/slate Tailwind par
-// défaut → identité visuelle cohérente sur tous les avatars.
+// Avatar gradients — palette 100% alignée charte officielle.
 //
-// Les gradients non-bleus (amber, violet, rose, emerald, lime, orange)
-// gardent leurs couleurs d'origine — la variation chromatique reste
-// importante pour distinguer les talents.
+//   • Bleus CLAIRS  → skyblue.{200..500}  (bleu vif #1E6BFF, palette charte)
+//   • Bleus PROFONDS → deepblue.{500..900} (bleu logo #0A1E3F)
+//   • Orange        → energy.{300..500}   (orange charte #FF8A00)
+//
+// Les gradients non-bleus (amber, violet, rose, emerald, lime) gardent
+// leurs couleurs d'origine — la variation chromatique reste utile pour
+// distinguer les talents au scroll d'un leaderboard.
 const G = {
-  // ─── Gradients bleus (harmonisés charte) ────────────────────────────
-  cyanOcean:  "from-cyan-400 via-deepblue-500 to-deepblue-800",   // cyan → bleu profond
-  steelBlue:  "from-sky-300 via-deepblue-600 to-deepblue-800",    // ciel → bleu profond
-  arcticCyan: "from-cyan-200 via-deepblue-500 to-deepblue-900",   // glace → bleu profond
-  brandWave:  "from-energy-400 via-deepblue-600 to-deepblue-900", // orange → bleu (signature charte)
-  // ─── Autres gradients (inchangés, identité multi-couleur préservée) ──
+  // ─── Gradients bleus charte (clair → profond) ──────────────────────
+  cyanOcean:  "from-skyblue-300 via-skyblue-500 to-deepblue-800",  // ciel vif → bleu profond
+  steelBlue:  "from-skyblue-200 via-skyblue-500 to-deepblue-700",  // ciel pâle → bleu profond
+  arcticCyan: "from-skyblue-100 via-skyblue-400 to-deepblue-900",  // ciel glacé → bleu profond très foncé
+  brandWave:  "from-energy-400 via-skyblue-500 to-deepblue-800",   // orange → ciel → bleu (signature charte)
+  // ─── Autres gradients (multi-couleur, inchangés) ────────────────────
   amberSun: "from-amber-300 via-orange-500 to-rose-800",
   violetDream: "from-violet-400 via-fuchsia-500 to-indigo-900",
   emeraldDeep: "from-emerald-300 via-teal-600 to-slate-900",
