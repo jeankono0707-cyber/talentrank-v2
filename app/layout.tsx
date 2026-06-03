@@ -1,18 +1,26 @@
 import type { Metadata } from "next";
-import { Nunito, Fredoka, JetBrains_Mono } from "next/font/google";
+import { Inter, Sora, JetBrains_Mono } from "next/font/google";
 import { RootShell } from "@/components/layout/RootShell";
 import "./globals.css";
 
-// Duolingo-inspired pairing: Fredoka (rounded, friendly) for display, Nunito for body.
-const sans = Nunito({
+// Charte Nadia — pairing pro Chess.com / Linear style.
+//   • Sora (display, géométrique, 700/800) → titres impact + wordmark
+//   • Inter (body, neutre lisible) → tout le texte courant
+//   • JetBrains Mono → chiffres/scores tabulaires
+//
+// Migration depuis Fredoka + Nunito (Duolingo enfant) vers Sora + Inter
+// (premium adulte). Les anciennes variables --font-sans / --font-display
+// sont conservées comme alias pour ne pas casser les composants qui les
+// utilisent en font-family Tailwind (tailwind.config.ts).
+const sans = Inter({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans",
   display: "swap",
 });
-const display = Fredoka({
+const display = Sora({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });

@@ -79,6 +79,31 @@ const config: Config = {
           700: "#B45309",
           900: "#7C3B05",
         },
+        // ─── Brand charte (DA Nadia) ─────────────────────────────────────
+        // Les 4 couleurs canoniques du brand book TalentRank. À utiliser
+        // pour la signature visuelle : logo, hero, favicon, press kit.
+        //   • night-brand  → fond très sombre (logo monogramme, dark CTAs)
+        //   • amber-brand  → accent principal, slash logo, badges TOP
+        //   • cream-brand  → fond éditorial chaud (landing /about, hero)
+        //   • slate-brand  → texte secondaire / divider neutre
+        //
+        // Les anciens tokens (ink/mist/night/prestige) restent en place
+        // pour rétro-compatibilité — ce sont juste des ALIAS sémantiques
+        // pour les nouveaux composants brand.
+        brand: {
+          night: "#0E1117",
+          amber: "#F5B22E",
+          cream: "#F7F3EB",
+          slate: "#6B7280",
+        },
+        cream: {
+          50:  "#FFFEFB",
+          100: "#FCFAF3",
+          200: "#F7F3EB",   // canonique charte
+          300: "#EFE8D8",
+          400: "#E2D7BB",
+          500: "#C9B998",
+        },
         // ─── Bright friendly accents ─────────────────────────────────────
         signal: {
           green: "#58CC02",
