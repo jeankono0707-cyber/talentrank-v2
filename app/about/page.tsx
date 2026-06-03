@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Sparkles, Target, Trophy, Users } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
 
 export const metadata = {
@@ -51,7 +51,7 @@ export default function AboutPage() {
 
       {/* Hero */}
       <header className="mt-10 max-w-3xl mx-auto text-center">
-        <Logo size={48} withWordmark className="justify-center" />
+        <BrandLogo size={48} variant="wordmark-baseline" className="justify-center" />
         <h1
           className="mt-8 font-display font-black tracking-tight text-mist-50"
           style={{

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Footer v2 — cream cohérent, FR, liens vers les nouvelles pages.
@@ -54,7 +54,7 @@ export function Footer() {
       <div className="container-page grid gap-12 py-14 md:grid-cols-[1.4fr_2fr]">
         {/* Brand block */}
         <div>
-          <Logo size={36} withWordmark />
+          <BrandLogo size={36} variant="wordmark" />
           <p className="mt-4 max-w-sm text-[13.5px] leading-relaxed text-mist-300">
             Le marché mondial des talents classés. Un métier, un classement.
             Pas de candidatures à lire. Le bounty hunter du recrutement.

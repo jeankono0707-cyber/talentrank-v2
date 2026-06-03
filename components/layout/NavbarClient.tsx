@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LogOut, Menu, X } from "lucide-react";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import { LocaleSwitcher } from "@/components/layout/LocaleSwitcher";
@@ -80,7 +80,7 @@ export function NavbarClient({ user, locale }: { user: NavbarUser | null; locale
           href="/"
           className="group inline-flex items-center gap-2 -ml-1 px-1 py-0.5 rounded-lg transition-transform hover:-translate-y-0.5 active:translate-y-0"
         >
-          <Logo size={28} />
+          <BrandLogo size={28} variant="wordmark" />
         </Link>
 
         <ul

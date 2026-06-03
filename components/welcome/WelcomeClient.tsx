@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { motion } from "framer-motion";
 import { ArrowRight, Building2, Sparkles, Trophy, UserCircle, Zap } from "lucide-react";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { browseAsVisitor, chooseAudience } from "@/app/welcome/actions";
 import { triggerHaptic } from "@/lib/haptic";
 import { track } from "@/lib/analytics/events";
@@ -49,7 +49,7 @@ export function WelcomeClient() {
     >
       {/* Logo top center */}
       <header className="pt-10 pb-4 flex justify-center">
-        <Logo size={42} withWordmark />
+        <BrandLogo size={42} variant="wordmark" />
       </header>
 
       {/* Eyebrow + tagline */}

@@ -15,7 +15,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { useMuted } from "@/lib/audio/sounds";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
 import { SidebarIcon, type SidebarIconName } from "@/components/ui/SidebarIcon";
 import { cn } from "@/lib/utils";
@@ -124,10 +124,10 @@ export function MainSidebar() {
         aria-label="TalentRank — Accueil"
       >
         <span className="lg:hidden">
-          <Logo size={30} withWordmark={false} audience={audience} />
+          <BrandLogo size={30} variant="monogram" />
         </span>
         <span className="hidden lg:inline-flex">
-          <Logo size={30} withWordmark audience={audience} />
+          <BrandLogo size={30} variant="wordmark" />
         </span>
       </Link>
 

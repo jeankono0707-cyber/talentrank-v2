@@ -15,7 +15,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
-import { Logo } from "@/components/ui/Logo";
+import { BrandLogo } from "@/components/ui/BrandLogo";
 import {
   completeOnboarding,
   type OnboardingPayload,
@@ -170,7 +170,7 @@ export function OnboardingClient({ audience }: { audience: Audience }) {
           <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2.6} />
           Revoir le choix
         </Link>
-        <Logo size={32} withWordmark />
+        <BrandLogo size={32} variant="wordmark" />
         <span aria-hidden className="w-[120px]" />
       </header>
 
