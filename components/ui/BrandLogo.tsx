@@ -1,42 +1,32 @@
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BrandLogo v2 — charte définitive validée par Jean-Marie.
+// BrandLogo v3 — charte définitive haute résolution (image fournie).
 //
-// IDENTITÉ :
-//   • Silhouette humaine stylisée en Y (personne triomphante, bras levés)
-//     bicolore : moitié orange #FF8A00 / moitié bleu #0A1E3F
-//   • Wordmark : "Talent" en bleu profond, "Rank" en orange
+// LE VRAI LOGO :
+//   • Tête ronde SÉPARÉE en haut (cercle bleu profond #0A1E3F)
+//   • Aile gauche ORANGE en forme de feuille pointue arrondie
+//   • Aile droite BLEU PROFOND en forme de grand crochet (plus longue,
+//     démarre en haut-droite et descend en arc vers le centre-bas)
+//   • Les deux ailes ne se touchent pas — espace blanc au milieu
+//
+// WORDMARK :
+//   • "Talent" en bleu profond
+//   • "Rank" en orange
+//   • Police : Plus Jakarta Sans Bold
 //   • Baseline optionnelle : "LE CLASSEMENT MONDIAL DES TALENTS"
 //
-// VALEURS PORTÉES (charte) :
-//   • Progression — la figure monte/triomphe
-//   • Excellence — bras tendus, posture victoire
-//   • Mondial — silhouette universelle, abstraction
-//   • Communauté — humain au cœur du logo
-//   • Impact — couleurs saturées, vivantes
-//
-// USAGE :
-//   • monogram          → carré (favicon, app icon, avatar UI)
-//   • wordmark          → silhouette + "TalentRank"
-//   • wordmark-baseline → + baseline "LE CLASSEMENT MONDIAL DES TALENTS"
-//
-// 3 skins selon le fond :
-//   • light → logo bicolore sur fond clair (défaut)
-//   • dark  → logo blanc+orange sur fond bleu profond
-//   • orange → logo blanc+bleu sur fond orange
+// 3 skins selon le fond (light / dark / orange).
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface BrandLogoProps {
   variant?: "monogram" | "wordmark" | "wordmark-baseline";
-  /** Taille de la silhouette en px. Wordmark s'ajuste auto. */
   size?: number;
-  /** Adapte les couleurs au fond. */
   skin?: "light" | "dark" | "orange";
   className?: string;
 }
 
-// Couleurs canoniques
+// Couleurs canoniques charte
 const BLUE = "#0A1E3F";
 const ORANGE = "#FF8A00";
 const WHITE = "#FFFFFF";
@@ -47,22 +37,30 @@ export function BrandLogo({
   skin = "light",
   className,
 }: BrandLogoProps) {
-  // Selon skin :
-  //   • light  → orange + bleu sur fond clair, "Talent" bleu / "Rank" orange
-  //   • dark   → orange + blanc sur fond bleu, "Talent" blanc / "Rank" orange
-  //   • orange → bleu + blanc sur fond orange, "Talent" blanc / "Rank" bleu
-  const figureLeft  = skin === "orange" ? BLUE   : ORANGE;
-  const figureRight = skin === "dark"   ? WHITE  : skin === "orange" ? WHITE : BLUE;
-  const wordTalent  = skin === "light"  ? BLUE   : WHITE;
-  const wordRank    = skin === "orange" ? BLUE   : ORANGE;
-  const baselineCol = skin === "light"  ? BLUE   : WHITE;
+  // Couleurs des éléments selon le skin :
+  //   light  → logo bicolore (orange + bleu) sur fond clair
+  //   dark   → logo orange + blanc sur fond bleu
+  //   orange → logo bleu + blanc sur fond orange
+  const wingLeftColor  = ORANGE;
+  const wingRightColor = skin === "dark" ? WHITE : skin === "orange" ? WHITE : BLUE;
+  const headColor      = skin === "dark" ? WHITE : skin === "orange" ? WHITE : BLUE;
+  // Si dark : l'aile gauche reste orange (signature), pas blanche.
+  // Si orange : l'aile gauche devient blanche pour contraster sur orange.
+  const wingLeftActual = skin === "orange" ? WHITE : ORANGE;
+
+  const wordTalent = skin === "light" ? BLUE : WHITE;
+  const wordRank   = skin === "orange" ? WHITE : ORANGE;
+  const baselineCol = skin === "light" ? BLUE : WHITE;
 
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
-      {/* ─── Silhouette Y ─── */}
-      <FigureY size={size} leftColor={figureLeft} rightColor={figureRight} />
+      <FigureY
+        size={size}
+        leftColor={wingLeftActual}
+        rightColor={wingRightColor}
+        headColor={headColor}
+      />
 
-      {/* ─── Wordmark ─── */}
       {variant !== "monogram" && (
         <span className="inline-flex flex-col leading-none">
           <span
@@ -81,10 +79,10 @@ export function BrandLogo({
               className="font-sans font-bold uppercase"
               style={{
                 color: baselineCol,
-                opacity: 0.7,
+                opacity: 0.75,
                 fontSize: Math.round(size * 0.16),
                 letterSpacing: "0.22em",
-                marginTop: Math.round(size * 0.12),
+                marginTop: Math.round(size * 0.14),
               }}
             >
               Le classement mondial des talents
@@ -97,113 +95,62 @@ export function BrandLogo({
 }
 
 // ─── FigureY ──────────────────────────────────────────────────────────────
-// La silhouette humaine triomphante en Y. Tête ronde, bras levés en V,
-// jambes en V renversé. Bicolore : moitié gauche / moitié droite.
+// La silhouette officielle : tête ronde séparée + 2 ailes courbées (feuilles).
+// Construction sur viewBox 100×100 — lisible de 16px (favicon) à grand format.
 //
-// Construction symétrique sur viewBox 100×100 pour rester lisible à toutes
-// les tailles (favicon 16px → poster 4K).
+// Paths construits aux courbes Bezier cubiques pour des galbes propres :
+//   • Tête : cercle séparé (cx=50, cy=18, r=9)
+//   • Aile gauche : feuille pointue, courbée vers le bas-gauche, mince
+//     et arrondie en haut, terminant en pointe arrondie en bas
+//   • Aile droite : grand crochet en C ouvert, démarre en haut-droite (x=82),
+//     courbe vers le centre-gauche puis pointe vers le centre-bas (x=50, y=82)
 function FigureY({
   size,
   leftColor,
   rightColor,
+  headColor,
 }: {
   size: number;
   leftColor: string;
   rightColor: string;
+  headColor: string;
 }) {
   return (
     <svg
       width={size}
-      height={size}
-      viewBox="0 0 100 100"
+      height={size * 1.05}
+      viewBox="0 0 100 105"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden
       className="shrink-0"
     >
-      {/* ─── MOITIÉ GAUCHE (couleur leftColor) ─── */}
-
-      {/* Bras gauche (monte vers le haut-gauche) */}
+      {/* ─── Aile droite BLEUE — grand crochet en C ouvert ─── */}
       <path
-        d="M 50 32
-           Q 38 28 22 16
-           Q 14 11 14 18
-           Q 16 24 32 34
-           Q 42 40 50 42
-           Z"
-        fill={leftColor}
-      />
-      {/* Corps gauche (tronc) */}
-      <path
-        d="M 50 42
-           L 50 70
-           L 42 70
-           L 38 50
-           Q 42 44 50 42
-           Z"
-        fill={leftColor}
-      />
-      {/* Jambe gauche */}
-      <path
-        d="M 42 70
-           L 50 70
-           L 50 92
-           Q 50 96 46 96
-           L 32 96
-           Q 28 96 30 92
-           Z"
-        fill={leftColor}
-      />
-
-      {/* ─── MOITIÉ DROITE (couleur rightColor) ─── */}
-
-      {/* Bras droit (monte vers le haut-droite) */}
-      <path
-        d="M 50 32
-           Q 62 28 78 16
-           Q 86 11 86 18
-           Q 84 24 68 34
-           Q 58 40 50 42
-           Z"
-        fill={rightColor}
-      />
-      {/* Corps droit (tronc) */}
-      <path
-        d="M 50 42
-           L 50 70
-           L 58 70
-           L 62 50
-           Q 58 44 50 42
-           Z"
-        fill={rightColor}
-      />
-      {/* Jambe droite */}
-      <path
-        d="M 58 70
-           L 50 70
-           L 50 92
-           Q 50 96 54 96
-           L 68 96
-           Q 72 96 70 92
+        d="M 80 14
+           C 88 14, 90 22, 84 32
+           C 76 46, 66 60, 56 78
+           C 54 82, 51 84, 50 84
+           C 49 84, 48 82, 49 80
+           C 54 64, 62 48, 70 32
+           C 75 22, 78 16, 80 14
            Z"
         fill={rightColor}
       />
 
-      {/* ─── TÊTE — split bicolor au centre ─── */}
-      {/* Moitié gauche de la tête */}
+      {/* ─── Aile gauche ORANGE — feuille pointue arrondie ─── */}
       <path
-        d="M 50 6
-           A 9 9 0 0 0 50 24
+        d="M 40 32
+           C 32 38, 28 50, 30 64
+           C 32 76, 42 78, 46 70
+           C 49 62, 48 50, 46 40
+           C 44 34, 41 31, 40 32
            Z"
         fill={leftColor}
       />
-      {/* Moitié droite de la tête */}
-      <path
-        d="M 50 6
-           A 9 9 0 0 1 50 24
-           Z"
-        fill={rightColor}
-      />
+
+      {/* ─── Tête — cercle séparé ─── */}
+      <circle cx="58" cy="20" r="9" fill={headColor} />
     </svg>
   );
 }

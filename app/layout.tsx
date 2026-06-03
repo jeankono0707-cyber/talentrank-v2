@@ -1,26 +1,30 @@
 import type { Metadata } from "next";
-import { Inter, Sora, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import { RootShell } from "@/components/layout/RootShell";
 import "./globals.css";
 
-// Charte Nadia — pairing pro Chess.com / Linear style.
-//   • Sora (display, géométrique, 700/800) → titres impact + wordmark
-//   • Inter (body, neutre lisible) → tout le texte courant
+// Charte v3 — typo unique Plus Jakarta Sans (extrait de la charte officielle).
+//   • Plus Jakarta Sans 400/500/600/700/800 → body ET display (cohérence)
 //   • JetBrains Mono → chiffres/scores tabulaires
 //
-// Migration depuis Fredoka + Nunito (Duolingo enfant) vers Sora + Inter
-// (premium adulte). Les anciennes variables --font-sans / --font-display
-// sont conservées comme alias pour ne pas casser les composants qui les
-// utilisent en font-family Tailwind (tailwind.config.ts).
-const sans = Inter({
+// Plus Jakarta Sans est une police géométrique moderne, lisible à toutes les
+// tailles, qui équilibre prestige (proche du géométrique pro Sora) et chaleur
+// (terminaisons légèrement ouvertes). C'est la signature typographique
+// officielle TalentRank.
+//
+// On utilise UNE SEULE famille pour --font-sans et --font-display avec des
+// poids différents. Ça simplifie le système et garantit une cohérence totale.
+const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans",
   display: "swap",
 });
-const display = Sora({
+// On expose la MÊME police comme --font-display pour que les composants
+// existants (font-display) continuent à fonctionner sans modification.
+const jakartaDisplay = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["600", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
@@ -63,7 +67,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${sans.variable} ${display.variable} ${mono.variable}`}>
+    <html lang="fr" className={`${jakarta.variable} ${jakartaDisplay.variable} ${mono.variable}`}>
       <body className="min-h-screen bg-ink-950 text-mist-100 font-sans antialiased">
         <RootShell>{children}</RootShell>
       </body>
