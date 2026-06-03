@@ -46,14 +46,15 @@ export function BrandLogo({
   priority = false,
 }: BrandLogoProps) {
   // Quel fichier image utiliser selon le skin ?
-  // ⚠ Par défaut on pointe vers .svg (placeholder Bezier approximatif).
-  // Quand ton vrai PNG est dans public/brand/, change l'extension en .png.
+  // figure.png est le VRAI logo officiel fourni par Nadia (haute résolution).
+  // Les variantes -light et -on-orange retombent sur .svg placeholder tant
+  // que les versions PNG ne sont pas fournies.
   const figureSrc =
     skin === "dark"
       ? "/brand/figure-light.svg"
       : skin === "orange"
         ? "/brand/figure-on-orange.svg"
-        : "/brand/figure.svg";
+        : "/brand/figure.png";
 
   // Couleurs du wordmark selon le skin
   const wordTalent = skin === "light" ? BLUE : WHITE;
