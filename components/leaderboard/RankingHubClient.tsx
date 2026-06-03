@@ -156,6 +156,13 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
 }
 
 // ─── HeroSearchBar ────────────────────────────────────────────────────────────
+// FIX-13 : Variétée des suggestions
+// Avant : les 5 métiers avec le plus de talents (tous "Création & Visuel" car
+// data biaisée → quelqu'un cherchant un plombier voyait Animateur 3D, no sens).
+// Maintenant :
+//   • Au focus sans query → liste des CATÉGORIES actives (parcours par domaine)
+//   • Au focus avec query → fuzzy match cross-categories
+//   • Sous la search → 4 chips populaires variées (1 par catégorie)
 function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -163,19 +170,42 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
   const [highlight, setHighlight] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Suggestions par défaut quand vide : les 5 métiers avec le plus de talents
-  const defaultSuggestions = useMemo(
-    () =>
-      [...professions]
-        .sort((a, b) => b.talentCount - a.talentCount)
-        .slice(0, 5),
-    [professions],
-  );
+  // Catégories actives (avec au moins 1 métier ayant des talents).
+  // C'est ce qu'on affiche AU FOCUS sans query — varié par essence.
+  const activeCategories = useMemo(() => {
+    const map = new Map<ProfessionCategoryId, { count: number; talents: number }>();
+    for (const p of professions) {
+      if (p.talentCount === 0) continue;
+      const curr = map.get(p.category) ?? { count: 0, talents: 0 };
+      map.set(p.category, {
+        count: curr.count + 1,
+        talents: curr.talents + p.talentCount,
+      });
+    }
+    return PROFESSION_CATEGORIES.filter((c) => map.has(c.id)).map((c) => ({
+      ...c,
+      ...map.get(c.id)!,
+    }));
+  }, [professions]);
 
-  // Fuzzy match sur label + synonymes
+  // Chips populaires (sous la search bar) : 1 métier par catégorie pour la
+  // variété. Le user voit du Tech, du Créa, de la Santé, du Bâtiment, etc.
+  const variedSuggestions = useMemo(() => {
+    const byCategory = new Map<ProfessionCategoryId, ProfessionWithStats>();
+    const sorted = [...professions]
+      .filter((p) => p.talentCount > 0)
+      .sort((a, b) => b.talentCount - a.talentCount);
+    for (const p of sorted) {
+      if (!byCategory.has(p.category)) byCategory.set(p.category, p);
+      if (byCategory.size >= 4) break;
+    }
+    return Array.from(byCategory.values());
+  }, [professions]);
+
+  // Fuzzy match sur label + synonymes (cross-categories) quand le user tape.
   const matches = useMemo(() => {
     const q = normalizeName(query.trim());
-    if (!q) return defaultSuggestions;
+    if (!q) return [];
     return professions
       .filter((p) => {
         const prof = PROFESSIONS.find((pp) => pp.id === p.id);
@@ -186,7 +216,7 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
         return hay.includes(q);
       })
       .slice(0, 8);
-  }, [query, professions, defaultSuggestions]);
+  }, [query, professions]);
 
   // Click outside closes the dropdown
   useEffect(() => {
@@ -258,13 +288,13 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
         </button>
       </div>
 
-      {/* Suggestions chips (visibles seulement quand pas focus) */}
-      {!focused && !query && (
+      {/* Suggestions chips (visibles seulement quand pas focus) — VARIÉES par catégorie */}
+      {!focused && !query && variedSuggestions.length > 0 && (
         <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
           <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-mist-400">
-            Populaire :
+            Au hasard :
           </span>
-          {defaultSuggestions.slice(0, 4).map((p) => (
+          {variedSuggestions.map((p) => (
             <button
               key={p.id}
               onClick={() => handleSelect(p.id)}
@@ -276,9 +306,10 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
         </div>
       )}
 
-      {/* Dropdown suggestions */}
+      {/* Dropdown */}
       <AnimatePresence>
-        {focused && matches.length > 0 && (
+        {/* Cas 1 : on tape — fuzzy match métier */}
+        {focused && query && matches.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -319,6 +350,60 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
             })}
           </motion.div>
         )}
+
+        {/* Cas 2 : pas de query — on liste les CATÉGORIES (parcours par domaine) */}
+        {focused && !query && activeCategories.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.15 }}
+            className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white shadow-2xl ring-1 ring-ink-700/10 overflow-hidden"
+          >
+            <div className="px-4 py-2.5 bg-amber-50/50 border-b border-amber-200/30">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+                Parcourir par domaine
+              </p>
+            </div>
+            {activeCategories.map((c) => {
+              const Icon = iconForCategory(c.id);
+              return (
+                <Link
+                  key={c.id}
+                  href={`/metiers/${c.id}`}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-amber-50"
+                  onClick={() => setFocused(false)}
+                >
+                  <span
+                    className="grid h-9 w-9 place-items-center rounded-xl shrink-0"
+                    style={{
+                      background: `linear-gradient(160deg, ${c.color}30, ${c.color}10)`,
+                    }}
+                  >
+                    <Icon className="h-4 w-4" strokeWidth={2.4} style={{ color: c.color }} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-display text-[14px] font-bold text-night-900 truncate">
+                      {c.frLabel}
+                    </div>
+                    <div className="text-[11px] text-mist-300">
+                      {c.count} métier{c.count > 1 ? "s" : ""} · {c.talents} talent
+                      {c.talents > 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-mist-300 shrink-0" strokeWidth={2.4} />
+                </Link>
+              );
+            })}
+            <div className="px-4 py-2.5 bg-ink-50/40 border-t border-ink-700/5 text-center">
+              <p className="text-[11px] text-mist-300">
+                Tu sais déjà ce que tu cherches ? Tape le nom du métier.
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Cas 3 : query sans résultat */}
         {focused && matches.length === 0 && query && (
           <motion.div
             initial={{ opacity: 0, y: -8 }}
