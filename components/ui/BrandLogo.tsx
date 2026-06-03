@@ -1,22 +1,28 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BrandLogo v3 — charte définitive haute résolution (image fournie).
+// BrandLogo v4 — utilise les ASSETS PNG officiels (pas de SVG approximation).
 //
-// LE VRAI LOGO :
-//   • Tête ronde SÉPARÉE en haut (cercle bleu profond #0A1E3F)
-//   • Aile gauche ORANGE en forme de feuille pointue arrondie
-//   • Aile droite BLEU PROFOND en forme de grand crochet (plus longue,
-//     démarre en haut-droite et descend en arc vers le centre-bas)
-//   • Les deux ailes ne se touchent pas — espace blanc au milieu
+// FICHIERS REQUIS dans public/brand/ :
+//   • figure.png         → silhouette seule (tête + 2 ailes), FOND TRANSPARENT
+//                          Ratio carré ou légèrement vertical, min 512×512
+//   • figure-light.png   → version blanche+orange (pour fond bleu/sombre) [OPTIONNEL]
+//   • figure-on-orange.png → version blanche+bleue (pour fond orange) [OPTIONNEL]
 //
-// WORDMARK :
-//   • "Talent" en bleu profond
-//   • "Rank" en orange
-//   • Police : Plus Jakarta Sans Bold
-//   • Baseline optionnelle : "LE CLASSEMENT MONDIAL DES TALENTS"
+// Le wordmark "TalentRank" reste rendu en HTML/CSS (Plus Jakarta Sans avec
+// "Talent" bleu et "Rank" orange). Comme ça la typo s'adapte à la résolution
+// d'écran et reste nette, et on n'a qu'UN fichier image à maintenir.
 //
-// 3 skins selon le fond (light / dark / orange).
+// VARIANTES :
+//   • monogram          → image silhouette seule (favicon, sidebar collapsed)
+//   • wordmark          → image + "TalentRank" inline
+//   • wordmark-baseline → + baseline "LE CLASSEMENT MONDIAL DES TALENTS"
+//
+// SKINS :
+//   • light  → silhouette bicolor sur fond clair (figure.png)
+//   • dark   → silhouette blanche+orange sur fond bleu (figure-light.png)
+//   • orange → silhouette blanche+bleu sur fond orange (figure-on-orange.png)
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface BrandLogoProps {
@@ -24,9 +30,10 @@ interface BrandLogoProps {
   size?: number;
   skin?: "light" | "dark" | "orange";
   className?: string;
+  /** Priorité de chargement (à mettre true pour le logo principal au-dessus du fold) */
+  priority?: boolean;
 }
 
-// Couleurs canoniques charte
 const BLUE = "#0A1E3F";
 const ORANGE = "#FF8A00";
 const WHITE = "#FFFFFF";
@@ -36,29 +43,37 @@ export function BrandLogo({
   size = 40,
   skin = "light",
   className,
+  priority = false,
 }: BrandLogoProps) {
-  // Couleurs des éléments selon le skin :
-  //   light  → logo bicolore (orange + bleu) sur fond clair
-  //   dark   → logo orange + blanc sur fond bleu
-  //   orange → logo bleu + blanc sur fond orange
-  const wingLeftColor  = ORANGE;
-  const wingRightColor = skin === "dark" ? WHITE : skin === "orange" ? WHITE : BLUE;
-  const headColor      = skin === "dark" ? WHITE : skin === "orange" ? WHITE : BLUE;
-  // Si dark : l'aile gauche reste orange (signature), pas blanche.
-  // Si orange : l'aile gauche devient blanche pour contraster sur orange.
-  const wingLeftActual = skin === "orange" ? WHITE : ORANGE;
+  // Quel fichier image utiliser selon le skin ?
+  // ⚠ Par défaut on pointe vers .svg (placeholder Bezier approximatif).
+  // Quand ton vrai PNG est dans public/brand/, change l'extension en .png.
+  const figureSrc =
+    skin === "dark"
+      ? "/brand/figure-light.svg"
+      : skin === "orange"
+        ? "/brand/figure-on-orange.svg"
+        : "/brand/figure.svg";
 
+  // Couleurs du wordmark selon le skin
   const wordTalent = skin === "light" ? BLUE : WHITE;
-  const wordRank   = skin === "orange" ? WHITE : ORANGE;
+  const wordRank = skin === "orange" ? WHITE : ORANGE;
   const baselineCol = skin === "light" ? BLUE : WHITE;
+
+  // L'image fait à peu près 1:1.05 (légèrement plus haute que large) — calibré
+  // sur le ratio de la charte officielle. Si ton fichier est différent, ajuste.
+  const imgHeight = Math.round(size * 1.05);
 
   return (
     <span className={cn("inline-flex items-center gap-3", className)}>
-      <FigureY
-        size={size}
-        leftColor={wingLeftActual}
-        rightColor={wingRightColor}
-        headColor={headColor}
+      <Image
+        src={figureSrc}
+        alt="TalentRank"
+        width={size}
+        height={imgHeight}
+        priority={priority}
+        className="shrink-0 select-none"
+        style={{ width: size, height: imgHeight }}
       />
 
       {variant !== "monogram" && (
@@ -91,66 +106,5 @@ export function BrandLogo({
         </span>
       )}
     </span>
-  );
-}
-
-// ─── FigureY ──────────────────────────────────────────────────────────────
-// La silhouette officielle : tête ronde séparée + 2 ailes courbées (feuilles).
-// Construction sur viewBox 100×100 — lisible de 16px (favicon) à grand format.
-//
-// Paths construits aux courbes Bezier cubiques pour des galbes propres :
-//   • Tête : cercle séparé (cx=50, cy=18, r=9)
-//   • Aile gauche : feuille pointue, courbée vers le bas-gauche, mince
-//     et arrondie en haut, terminant en pointe arrondie en bas
-//   • Aile droite : grand crochet en C ouvert, démarre en haut-droite (x=82),
-//     courbe vers le centre-gauche puis pointe vers le centre-bas (x=50, y=82)
-function FigureY({
-  size,
-  leftColor,
-  rightColor,
-  headColor,
-}: {
-  size: number;
-  leftColor: string;
-  rightColor: string;
-  headColor: string;
-}) {
-  return (
-    <svg
-      width={size}
-      height={size * 1.05}
-      viewBox="0 0 100 105"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden
-      className="shrink-0"
-    >
-      {/* ─── Aile droite BLEUE — grand crochet en C ouvert ─── */}
-      <path
-        d="M 80 14
-           C 88 14, 90 22, 84 32
-           C 76 46, 66 60, 56 78
-           C 54 82, 51 84, 50 84
-           C 49 84, 48 82, 49 80
-           C 54 64, 62 48, 70 32
-           C 75 22, 78 16, 80 14
-           Z"
-        fill={rightColor}
-      />
-
-      {/* ─── Aile gauche ORANGE — feuille pointue arrondie ─── */}
-      <path
-        d="M 40 32
-           C 32 38, 28 50, 30 64
-           C 32 76, 42 78, 46 70
-           C 49 62, 48 50, 46 40
-           C 44 34, 41 31, 40 32
-           Z"
-        fill={leftColor}
-      />
-
-      {/* ─── Tête — cercle séparé ─── */}
-      <circle cx="58" cy="20" r="9" fill={headColor} />
-    </svg>
   );
 }

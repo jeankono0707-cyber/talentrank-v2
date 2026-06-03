@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Placeholder version light (silhouette blanche+orange pour fond bleu). -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 105" fill="none">
+  <path d="M 80 14 C 88 14, 90 22, 84 32 C 76 46, 66 60, 56 78 C 54 82, 51 84, 50 84 C 49 84, 48 82, 49 80 C 54 64, 62 48, 70 32 C 75 22, 78 16, 80 14 Z" fill="#FFFFFF"/>
+  <path d="M 40 32 C 32 38, 28 50, 30 64 C 32 76, 42 78, 46 70 C 49 62, 48 50, 46 40 C 44 34, 41 31, 40 32 Z" fill="#FF8A00"/>
+  <circle cx="58" cy="20" r="9" fill="#FFFFFF"/>
+</svg>
