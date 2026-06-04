@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Flame, TrendingUp, Sparkles, ChevronUp } from "lucide-react";
+import { Flame, TrendingUp, Sparkles, ChevronUp, Info } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LeagueBreakdownModal } from "@/components/gamification/LeagueBreakdownModal";
+import { RankDeltaToast } from "@/components/gamification/RankDeltaToast";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -84,6 +86,17 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
   const league = LEAGUE_STYLES[my.league];
   const xpProgress = (my.xpCurrent / my.xpNeeded) * 100;
   const [scrolled, setScrolled] = useState(false);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+
+  // Mock breakdown stable basé sur seed pour démo. À remplacer par vrai
+  // fetch quand Supabase Phase 2 sera live.
+  const seed = professionId.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const mockBreakdown = {
+    qcmScore: 50 + ((seed * 7) % 50),
+    seniorityScore: 40 + ((seed * 11) % 55),
+    peerScore: 45 + ((seed * 13) % 50),
+  };
+  const percentile = Math.round((my.rank / my.totalTalents) * 100);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 220);
@@ -111,23 +124,32 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
 
         <div className="relative p-5 md:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
-            {/* League badge — gros, à gauche */}
+            {/* League badge — gros, à gauche.
+                Clic = ouvre la modal de breakdown (transparence Léo). */}
             <div className="flex items-center gap-4">
-              <motion.div
+              <motion.button
+                onClick={() => setBreakdownOpen(true)}
                 initial={{ scale: 0, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
+                whileHover={{ scale: 1.05 }}
                 transition={{ delay: 0.35, type: "spring", stiffness: 220, damping: 14 }}
+                aria-label={`Ligue ${my.league} — Comprendre le calcul`}
                 className={cn(
-                  "shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br",
+                  "group relative shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br cursor-pointer transition-all",
                   league.bg,
                   league.glow,
                   "h-16 w-16 md:h-20 md:w-20",
+                  "hover:shadow-2xl",
                 )}
               >
                 <span className="font-display text-3xl md:text-4xl font-black text-white drop-shadow">
                   {my.league}
                 </span>
-              </motion.div>
+                {/* Indicateur info au hover */}
+                <span className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-white shadow-card ring-1 ring-ink-700/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Info className="h-3 w-3 text-night-700" strokeWidth={2.8} />
+                </span>
+              </motion.button>
 
               <div className="min-w-0">
                 <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-700">
@@ -243,6 +265,25 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
           </div>
         </div>
       </motion.div>
+
+      {/* Modal breakdown ligue — transparence Léo. Au clic sur le badge ligue
+          le user voit le détail du calcul (QCM + ancienneté + peer reviews). */}
+      <LeagueBreakdownModal
+        open={breakdownOpen}
+        onClose={() => setBreakdownOpen(false)}
+        league={my.league}
+        breakdown={mockBreakdown}
+        percentile={percentile}
+      />
+
+      {/* Toast delta négatif Léo — variable reward au mount. S'affiche 1 fois
+          par session si le user a perdu des places cette semaine. */}
+      {my.deltaThisWeek < 0 && (
+        <RankDeltaToast
+          placesLost={Math.abs(my.deltaThisWeek)}
+          professionLabel={professionLabel}
+        />
+      )}
     </>
   );
 }

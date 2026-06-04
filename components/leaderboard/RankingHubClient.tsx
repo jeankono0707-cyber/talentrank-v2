@@ -14,6 +14,7 @@ import {
   Flame,
 } from "lucide-react";
 import { Podium, type PodiumEntry } from "./Podium";
+import { SeasonCountdown } from "@/components/gamification/SeasonCountdown";
 import {
   PROFESSIONS,
   PROFESSION_CATEGORIES,
@@ -117,6 +118,16 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
           className="mt-10 max-w-2xl mx-auto"
         >
           <HeroSearchBar professions={professions} />
+        </motion.div>
+
+        {/* ─── Season countdown — FOMO de cycle Léo ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+          className="mt-8 max-w-2xl mx-auto"
+        >
+          <SeasonCountdown variant="banner" />
         </motion.div>
 
         {/* ─── TRENDING ─── */}

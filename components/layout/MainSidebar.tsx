@@ -15,6 +15,7 @@ import { useMuted } from "@/lib/audio/sounds";
 import { BrandLogo } from "@/components/ui/BrandLogo";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
 import { SidebarIcon, type SidebarIconName } from "@/components/ui/SidebarIcon";
+import { StreakBadge } from "@/components/gamification/StreakBadge";
 import { cn } from "@/lib/utils";
 import type { TierId } from "@/lib/tiers";
 import {
@@ -137,6 +138,16 @@ export function MainSidebar() {
           logo signale en permanence le mode actuel + sert d'ancrage pour
           repérer le toggle complet en bas. */}
       <AudienceBadge audience={audience} />
+
+      {/* Streak quotidien Léo — loss aversion engagement. Affiché juste sous
+          le badge audience pour rester en permanence visible. Mini mode en
+          collapsed (icône seule), compact mode en expanded. */}
+      <div className="mt-3 hidden lg:block">
+        <StreakBadge variant="compact" />
+      </div>
+      <div className="mt-3 lg:hidden flex justify-center">
+        <StreakBadge variant="mini" />
+      </div>
 
       {/* Primary nav — 6 items, jamais plus */}
       <ul className="flex-1 space-y-1 overflow-y-auto -mr-2 pr-2 lg:-mr-1 lg:pr-1">
