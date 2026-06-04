@@ -8,7 +8,6 @@ import {
   CreditCard,
   type LucideIcon,
   UserCircle2,
-  Users,
   Volume2,
   VolumeX,
 } from "lucide-react";
@@ -81,9 +80,13 @@ const NAV_TALENT: NavItem[] = [
 
 const NAV_STUDIO: NavItem[] = [
   { href: "/chasse",        label: "Chasse",       icon: "chasse" },
-  { href: "/candidats",     label: "Candidats",    lucide: Users,         lucideTint: "#22D3EE" },
+  // Réutilise temporairement l'icône PROFIL pour "Candidats" en attendant
+  // un asset dédié — le concept (silhouette personne) marche pour les deux.
+  { href: "/candidats",     label: "Candidats",    icon: "profil" },
   { href: "/ranking",       label: "Classements",  icon: "ranking" },
-  { href: "/qcm-builder",   label: "QCM & Éval.",  lucide: Briefcase,     lucideTint: "#A78BFA" },
+  // Réutilise temporairement l'icône QCM (clipboard+dot) pour "QCM & Éval."
+  // côté studio — c'est le même concept fonctionnel (un QCM).
+  { href: "/qcm-builder",   label: "QCM & Éval.",  icon: "qcm" },
   { href: "/messages",      label: "Messagerie",   icon: "messagerie" },
   { href: "/abonnement",    label: "Abonnement",   lucide: CreditCard,    lucideTint: "#10B981" },
 ];
