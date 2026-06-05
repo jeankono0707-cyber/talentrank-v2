@@ -54,6 +54,17 @@ interface CategoryWithStats {
   color: string;
   talentCount: number;
   professionCount: number;
+  /** True pour la catégorie avec le plus de talents → badge "LE PLUS ACTIF". */
+  isMostActive?: boolean;
+  /** 4 noms de métiers représentatifs ("Animateurs · VFX · Concept Art · Storyboard"). */
+  subSpecialties?: string[];
+  /** Top 1 talent de la catégorie (preview accrocheur dans la card). */
+  top1?: {
+    name: string;
+    initials: string;
+    score: number;
+    slug: string;
+  } | null;
 }
 
 interface TrendingMetier {
@@ -147,19 +158,58 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
           </section>
         )}
 
-        {/* ─── CATÉGORIES ─── */}
+        {/* ─── CHAMPIONNATS PAR DOMAINE ─── */}
         <section className="mt-24">
-          <SectionHeader
-            icon={<Sparkles className="h-4 w-4 text-night-700" strokeWidth={2.6} />}
-            eyebrow="Explorer par domaine"
-            title="Ou choisis un univers"
-            subtitle="9 catégories — toutes les professions, classées."
-          />
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 md:gap-4">
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-skyblue-700 mb-2 flex items-center gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-skyblue-600" strokeWidth={2.6} />
+              Choisis ton championnat
+            </p>
+            <h2 className="font-display text-[28px] md:text-[36px] font-black tracking-tight text-night-900 leading-tight">
+              Affronte les meilleurs talents
+              <br className="hidden sm:inline" />
+              <span className="text-mist-200"> et grimpe dans les classements.</span>
+            </h2>
+            <div className="mt-3 h-1 w-12 rounded-full bg-skyblue-500" />
+          </div>
+
+          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
             {categories.map((c, i) => (
-              <CategoryTile key={c.id} category={c} index={i} />
+              <CategoryChampionshipCard key={c.id} category={c} index={i} />
             ))}
           </div>
+
+          {/* ─── Bandeau Un seul objectif ─── */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-8 rounded-2xl bg-skyblue-50/60 ring-1 ring-inset ring-skyblue-200/60 px-5 py-4 md:px-6 md:py-5 flex flex-col sm:flex-row sm:items-center gap-4"
+          >
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-energy-400 to-energy-600 shadow-sm">
+              <Trophy className="h-6 w-6 text-white" strokeWidth={2.4} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-display text-[16px] md:text-[18px] font-black text-night-900 leading-tight">
+                Un seul objectif : devenir le meilleur.
+              </p>
+              <p className="text-[12.5px] text-mist-200 mt-0.5">
+                Progresse, accumule des points et atteins la première place.
+              </p>
+            </div>
+            <Link
+              href="/qcm"
+              className={cn(
+                "inline-flex shrink-0 items-center gap-2 rounded-full",
+                "bg-gradient-to-r from-skyblue-500 to-skyblue-700 text-white",
+                "px-5 py-2.5 text-[12.5px] font-bold uppercase tracking-[0.12em]",
+                "shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all",
+              )}
+            >
+              <TrendingUp className="h-4 w-4" strokeWidth={2.6} />
+              Découvrir mon classement
+            </Link>
+          </motion.div>
         </section>
       </div>
     </div>
@@ -539,40 +589,125 @@ function TrendingCard({ trending, index }: { trending: TrendingMetier; index: nu
   );
 }
 
-// ─── CategoryTile ─────────────────────────────────────────────────────────────
-function CategoryTile({ category, index }: { category: CategoryWithStats; index: number }) {
+// ─── CategoryChampionshipCard ────────────────────────────────────────────────
+// Carte catégorie style "Choisis ton championnat" (image de référence).
+// Structure :
+//   1. En-tête : icône colorée carrée à gauche, badge "🔥 LE PLUS ACTIF"
+//      en haut-droite si applicable
+//   2. Titre catégorie + sous-spécialités (4 métiers représentatifs)
+//   3. Stats : 👤 N talents · 🏆 #1 Nom + Score
+//   4. Footer : "VOIR LE CLASSEMENT →" en uppercase, couleur catégorie
+function CategoryChampionshipCard({
+  category,
+  index,
+}: {
+  category: CategoryWithStats;
+  index: number;
+}) {
   const Icon = iconForCategory(category.id);
+  // Sous-spécialités : si pas fournies, fallback texte simple
+  const subSpecs =
+    category.subSpecialties && category.subSpecialties.length > 0
+      ? category.subSpecialties.join(" · ")
+      : `${category.professionCount} métier${category.professionCount > 1 ? "s" : ""}`;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.04 }}
+      transition={{ duration: 0.4, delay: index * 0.06, ease: [0.16, 1, 0.3, 1] }}
     >
       <Link
         href={`/metiers/${category.id}`}
-        className="group relative block rounded-3xl bg-white p-5 ring-1 ring-inset ring-ink-700/10 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all overflow-hidden"
+        className={cn(
+          "group relative flex flex-col h-full overflow-hidden rounded-2xl bg-white",
+          "ring-1 ring-inset ring-ink-700/10 shadow-card",
+          "hover:shadow-card-hover hover:-translate-y-1 hover:ring-deepblue-200/60",
+          "transition-all duration-200",
+        )}
       >
-        {/* Decorative blur halo */}
+        {/* Badge "LE PLUS ACTIF" — coin haut-droite */}
+        {category.isMostActive && (
+          <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full bg-energy-50 ring-1 ring-inset ring-energy-300/60 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-energy-700">
+            <Flame className="h-3 w-3" strokeWidth={2.8} />
+            Le plus actif
+          </span>
+        )}
+
+        {/* Halo coloré subtil en arrière-plan (signature catégorie) */}
         <div
-          className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-30 blur-2xl group-hover:opacity-50 transition-opacity"
+          className="pointer-events-none absolute -right-12 -bottom-12 h-40 w-40 rounded-full opacity-10 blur-3xl group-hover:opacity-20 transition-opacity"
           style={{ background: category.color }}
         />
-        <div className="relative">
+
+        <div className="relative p-5 flex-1 flex flex-col">
+          {/* Header — icône carrée + titre */}
+          <div className="flex items-start gap-3">
+            <span
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl shadow-sm"
+              style={{ background: category.color }}
+            >
+              <Icon className="h-5 w-5 text-white" strokeWidth={2.6} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-display text-[17px] md:text-[18px] font-black tracking-tight text-night-900 leading-tight">
+                {category.frLabel}
+              </h3>
+              <p className="mt-1 text-[11.5px] text-mist-300 leading-snug line-clamp-2">
+                {subSpecs}
+              </p>
+            </div>
+          </div>
+
+          {/* Stats — count + Top 1 */}
+          <div className="mt-5 grid grid-cols-2 gap-3 pb-1">
+            <div>
+              <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-mist-300 mb-0.5">
+                <Users className="h-3 w-3" strokeWidth={2.6} />
+                Talents
+              </div>
+              <div className="font-display text-[18px] md:text-[20px] font-black text-night-900 tabular-nums leading-none">
+                {category.talentCount.toLocaleString("fr-FR")}
+              </div>
+            </div>
+            {category.top1 && (
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.12em] text-mist-300 mb-0.5">
+                  <Trophy
+                    className="h-3 w-3"
+                    strokeWidth={2.6}
+                    style={{ color: category.color }}
+                  />
+                  #1 {category.top1.name.split(" ")[0]}{" "}
+                  {category.top1.name.split(" ")[1]?.[0]}.
+                </div>
+                <div
+                  className="font-display text-[14px] md:text-[15px] font-bold tabular-nums leading-none"
+                  style={{ color: category.color }}
+                >
+                  Score {category.top1.score}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer CTA — bande haut bord top */}
+        <div
+          className="relative border-t mt-1 px-5 py-3 flex items-center justify-between"
+          style={{ borderColor: `${category.color}1a` }}
+        >
           <span
-            className="grid h-12 w-12 place-items-center rounded-2xl mb-3"
-            style={{
-              background: `linear-gradient(160deg, ${category.color}30, ${category.color}10)`,
-            }}
+            className="text-[11px] font-bold uppercase tracking-[0.14em] transition-colors"
+            style={{ color: category.color }}
           >
-            <Icon className="h-6 w-6" strokeWidth={2.5} style={{ color: category.color }} />
+            Voir le classement
           </span>
-          <h3 className="font-display text-[15px] md:text-[16px] font-black tracking-tight text-night-900 leading-tight">
-            {category.frLabel}
-          </h3>
-          <p className="mt-1 text-[11px] text-mist-400">
-            {category.professionCount} métier{category.professionCount > 1 ? "s" : ""} ·{" "}
-            {category.talentCount} talent{category.talentCount > 1 ? "s" : ""}
-          </p>
+          <ArrowRight
+            className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+            strokeWidth={2.8}
+            style={{ color: category.color }}
+          />
         </div>
       </Link>
     </motion.div>

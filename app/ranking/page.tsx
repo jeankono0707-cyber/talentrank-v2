@@ -46,21 +46,51 @@ export default function RankingPage() {
     };
   });
 
-  // 2. Catégories actives (au moins un métier avec talents) + top 9
+  // 2. Catégories actives, enrichies pour le design "championnat" :
+  //    - top1Talent (avatar + score du #1 de la catégorie)
+  //    - subSpecialties (4 métiers les plus représentés)
+  //    - mostActive = la catégorie avec le plus de talents (badge LE PLUS ACTIF)
   const catStats = allCategoryStats();
-  const categories = catStats
-    .filter((c) => c.talentCount > 0)
-    .slice(0, 9)
-    .map((c) => {
-      const meta = PROFESSION_CATEGORIES.find((cat) => cat.id === c.categoryId)!;
-      return {
-        id: c.categoryId,
-        frLabel: meta.frLabel,
-        color: meta.color,
-        talentCount: c.talentCount,
-        professionCount: c.professionCount,
-      };
-    });
+  const activeCategoriesRaw = catStats.filter((c) => c.talentCount > 0);
+  const mostActiveCategoryId = activeCategoriesRaw.length
+    ? [...activeCategoriesRaw].sort((a, b) => b.talentCount - a.talentCount)[0]
+        .categoryId
+    : null;
+
+  const categories = activeCategoriesRaw.slice(0, 9).map((c) => {
+    const meta = PROFESSION_CATEGORIES.find((cat) => cat.id === c.categoryId)!;
+
+    // Top 1 talent de la catégorie (meilleur score)
+    const top1 = c.topTalents[0] ?? null;
+
+    // Sous-spécialités = 4 premiers métiers de la catégorie qui ont au moins
+    // 1 talent (en ordre canonique). Affichage type "Animateurs · VFX · …".
+    const subSpecialties = PROFESSIONS.filter(
+      (p) =>
+        p.category === c.categoryId &&
+        (counts[p.id] ?? 0) > 0,
+    )
+      .slice(0, 4)
+      .map((p) => p.frShort || p.short || p.frLabel);
+
+    return {
+      id: c.categoryId,
+      frLabel: meta.frLabel,
+      color: meta.color,
+      talentCount: c.talentCount,
+      professionCount: c.professionCount,
+      isMostActive: c.categoryId === mostActiveCategoryId,
+      subSpecialties,
+      top1: top1
+        ? {
+            name: top1.name,
+            initials: top1.initials,
+            score: top1.score,
+            slug: top1.slug,
+          }
+        : null,
+    };
+  });
 
   // 3. Trending — les 6 métiers avec le plus de talents, avec leur top 3
   const trending = stats.slice(0, 6).map((s) => {
