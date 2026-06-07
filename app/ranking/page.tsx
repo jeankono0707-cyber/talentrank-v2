@@ -57,18 +57,34 @@ export default function RankingPage() {
         .categoryId
     : null;
 
+  // 4 catégories qui ont un PNG mascot dans /public/brand/ → elles sont
+  // mises en avant comme "Royaumes" sur le hub. Le reste est en grid normal.
+  const KINGDOM_MASCOTS: Partial<Record<ProfessionCategoryId, string>> = {
+    creative: "/brand/CREATION.png",
+    tech:     "/brand/TECH.png",
+    data:     "/brand/DATA_IA.png",
+    health:   "/brand/SANTE.png",
+  };
+
   const categories = activeCategoriesRaw.slice(0, 9).map((c) => {
     const meta = PROFESSION_CATEGORIES.find((cat) => cat.id === c.categoryId)!;
 
     // Top 1 talent de la catégorie (meilleur score)
     const top1 = c.topTalents[0] ?? null;
 
-    // Sous-spécialités = 4 premiers métiers de la catégorie qui ont au moins
-    // 1 talent (en ordre canonique). Affichage type "Animateurs · VFX · …".
+    // Top 3 métiers de la catégorie par nb de talents (ordre populaire).
+    // Affiché dans les KingdomCards avec badges 1/2/3 colorés.
+    const topProfessions = PROFESSIONS.filter(
+      (p) => p.category === c.categoryId && (counts[p.id] ?? 0) > 0,
+    )
+      .sort((a, b) => (counts[b.id] ?? 0) - (counts[a.id] ?? 0))
+      .slice(0, 3)
+      .map((p) => ({ id: p.id, frLabel: p.frLabel }));
+
+    // Sous-spécialités = 4 premiers métiers (ordre canonique) — pour les
+    // catégories qui ne sont pas des "Royaumes" (cards en grid normal).
     const subSpecialties = PROFESSIONS.filter(
-      (p) =>
-        p.category === c.categoryId &&
-        (counts[p.id] ?? 0) > 0,
+      (p) => p.category === c.categoryId && (counts[p.id] ?? 0) > 0,
     )
       .slice(0, 4)
       .map((p) => p.frShort || p.short || p.frLabel);
@@ -81,6 +97,8 @@ export default function RankingPage() {
       professionCount: c.professionCount,
       isMostActive: c.categoryId === mostActiveCategoryId,
       subSpecialties,
+      topProfessions,
+      mascotSrc: KINGDOM_MASCOTS[c.categoryId] ?? null,
       top1: top1
         ? {
             name: top1.name,
@@ -91,6 +109,15 @@ export default function RankingPage() {
         : null,
     };
   });
+
+  // Stats globales pour le hero
+  const totalTalents = activeCategoriesRaw.reduce(
+    (sum, c) => sum + c.talentCount,
+    0,
+  );
+  const totalProfessionsWithTalents = Object.values(counts).filter(
+    (n) => n > 0,
+  ).length;
 
   // 3. Trending — les 6 métiers avec le plus de talents, avec leur top 3
   const trending = stats.slice(0, 6).map((s) => {
@@ -126,6 +153,8 @@ export default function RankingPage() {
       professions={flatProfessions}
       categories={categories}
       trending={trending}
+      totalTalents={totalTalents}
+      totalProfessions={totalProfessionsWithTalents}
     />
   );
 }

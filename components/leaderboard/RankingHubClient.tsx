@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -56,8 +57,14 @@ interface CategoryWithStats {
   professionCount: number;
   /** True pour la catégorie avec le plus de talents → badge "LE PLUS ACTIF". */
   isMostActive?: boolean;
-  /** 4 noms de métiers représentatifs ("Animateurs · VFX · Concept Art · Storyboard"). */
+  /** 4 noms de métiers représentatifs (cards catégories non-Royaume). */
   subSpecialties?: string[];
+  /** Top 3 métiers par popularité — utilisé dans KingdomCard. */
+  topProfessions?: { id: string; frLabel: string }[];
+  /** Path vers le PNG mascot (e.g. "/brand/CREATION.png") — ce qui fait
+   *  qu'une catégorie devient un "Royaume" en pleine page. Null = catégorie
+   *  secondaire affichée en grid normal. */
+  mascotSrc?: string | null;
   /** Top 1 talent de la catégorie (preview accrocheur dans la card). */
   top1?: {
     name: string;
@@ -80,9 +87,15 @@ interface Props {
   professions: ProfessionWithStats[];
   categories: CategoryWithStats[];
   trending: TrendingMetier[];
+  totalTalents: number;
+  totalProfessions: number;
 }
 
-export function RankingHubClient({ professions, categories, trending }: Props) {
+export function RankingHubClient({ professions, categories, trending, totalTalents, totalProfessions }: Props) {
+  // Split : catégories qui ont un mascot PNG → Royaumes (en avant)
+  //         autres catégories → grille secondaire
+  const kingdoms = categories.filter((c) => c.mascotSrc);
+  const otherCategories = categories.filter((c) => !c.mascotSrc);
   return (
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-energy-50/30 via-transparent to-transparent">
       {/* Décor subtil — soft glow ambre derrière le hero */}
@@ -94,49 +107,103 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
         }}
       />
 
-      <div className="container-page pt-16 md:pt-20 pb-24">
-        {/* ─── HERO ─── */}
+      <div className="container-page pt-12 md:pt-16 pb-24">
+        {/* ─── HERO — épuré, centré sur la search ─── */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="text-center max-w-3xl mx-auto"
+          transition={{ duration: 0.5 }}
+          className="text-center max-w-4xl mx-auto"
         >
-          <div className="inline-flex items-center gap-2 rounded-full bg-energy-100/60 px-4 py-1.5 ring-1 ring-inset ring-energy-300/40 mb-5">
-            <Trophy className="h-3.5 w-3.5 text-energy-700" strokeWidth={2.6} />
-            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-energy-800">
-              Classements TalentRank
-            </span>
-          </div>
-          <h1 className="font-display text-[40px] md:text-[58px] font-black tracking-tight leading-[1.05] text-night-900">
-            Qui est le meilleur,
-            <br />
-            <span className="bg-gradient-to-r from-deepblue-700 to-deepblue-900 bg-clip-text text-transparent">
-              dans ton métier ?
-            </span>
+          <h1 className="font-display text-[32px] md:text-[48px] font-black tracking-tight leading-[1.1] text-night-900">
+            Quel métier recherches-tu ?
           </h1>
-          <p className="mt-5 text-[15px] md:text-[16px] text-mist-200 max-w-xl mx-auto">
-            Découvre les meilleurs talents du monde, classés métier par métier.
-            <strong className="text-mist-50"> Pas de mix, pas de bruit.</strong>
-          </p>
         </motion.div>
 
         {/* ─── HERO SEARCH ─── */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="mt-10 max-w-2xl mx-auto"
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="mt-8 max-w-3xl mx-auto"
         >
           <HeroSearchBar professions={professions} />
+        </motion.div>
+
+        {/* ─── Stats inline ─── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
+          className="mt-5 flex items-center justify-center gap-6 text-[13.5px] text-mist-200"
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <Users className="h-4 w-4 text-skyblue-600" strokeWidth={2.4} />
+            <strong className="text-night-900 tabular-nums">
+              +{totalTalents.toLocaleString("fr-FR")}
+            </strong>{" "}
+            talents classés
+          </span>
+          <span className="h-4 w-px bg-ink-700/15" />
+          <span className="inline-flex items-center gap-1.5">
+            <Trophy className="h-4 w-4 text-energy-500" strokeWidth={2.4} />
+            dans{" "}
+            <strong className="text-night-900 tabular-nums">
+              {totalProfessions}
+            </strong>{" "}
+            métiers
+          </span>
+        </motion.div>
+
+        {/* ─── ROYAUMES — 4 grandes cards avec mascotte ─── */}
+        {kingdoms.length > 0 && (
+          <section className="mt-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5">
+              {kingdoms.map((c, i) => (
+                <KingdomCard key={c.id} category={c} index={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* ─── Bandeau "Progressez. Grimpez." ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="mt-8 rounded-2xl bg-skyblue-50/60 ring-1 ring-inset ring-skyblue-200/60 px-5 py-4 md:px-6 md:py-5 flex flex-col sm:flex-row sm:items-center gap-4"
+        >
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-energy-400 to-energy-600 shadow-sm">
+            <Trophy className="h-6 w-6 text-white" strokeWidth={2.4} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-display text-[16px] md:text-[18px] font-black text-night-900 leading-tight">
+              Progressez. Grimpez. Devenez le numéro 1.
+            </p>
+            <p className="text-[12.5px] text-mist-200 mt-0.5">
+              Rejoignez la compétition et hissez-vous au sommet de votre métier.
+            </p>
+          </div>
+          <Link
+            href="/qcm"
+            className={cn(
+              "inline-flex shrink-0 items-center gap-2 rounded-full",
+              "bg-gradient-to-r from-skyblue-500 to-skyblue-700 text-white",
+              "px-5 py-2.5 text-[12.5px] font-bold uppercase tracking-[0.12em]",
+              "shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all",
+            )}
+          >
+            <TrendingUp className="h-4 w-4" strokeWidth={2.6} />
+            Découvrir comment
+          </Link>
         </motion.div>
 
         {/* ─── Season countdown — FOMO de cycle Léo ─── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-8 max-w-2xl mx-auto"
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mt-8 max-w-3xl mx-auto"
         >
           <SeasonCountdown variant="banner" />
         </motion.div>
@@ -158,59 +225,25 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
           </section>
         )}
 
-        {/* ─── CHAMPIONNATS PAR DOMAINE ─── */}
-        <section className="mt-24">
-          <div className="max-w-3xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-skyblue-700 mb-2 flex items-center gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-skyblue-600" strokeWidth={2.6} />
-              Choisis ton championnat
-            </p>
-            <h2 className="font-display text-[28px] md:text-[36px] font-black tracking-tight text-night-900 leading-tight">
-              Affronte les meilleurs talents
-              <br className="hidden sm:inline" />
-              <span className="text-mist-200"> et grimpe dans les classements.</span>
-            </h2>
-            <div className="mt-3 h-1 w-12 rounded-full bg-skyblue-500" />
-          </div>
-
-          <div className="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
-            {categories.map((c, i) => (
-              <CategoryChampionshipCard key={c.id} category={c} index={i} />
-            ))}
-          </div>
-
-          {/* ─── Bandeau Un seul objectif ─── */}
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-8 rounded-2xl bg-skyblue-50/60 ring-1 ring-inset ring-skyblue-200/60 px-5 py-4 md:px-6 md:py-5 flex flex-col sm:flex-row sm:items-center gap-4"
-          >
-            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-energy-400 to-energy-600 shadow-sm">
-              <Trophy className="h-6 w-6 text-white" strokeWidth={2.4} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-display text-[16px] md:text-[18px] font-black text-night-900 leading-tight">
-                Un seul objectif : devenir le meilleur.
+        {/* ─── AUTRES UNIVERS — catégories sans mascotte, en grid compact ─── */}
+        {otherCategories.length > 0 && (
+          <section className="mt-20">
+            <div className="max-w-3xl">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-mist-300 mb-1.5 flex items-center gap-2">
+                <Sparkles className="h-3 w-3 text-mist-400" strokeWidth={2.6} />
+                Et bien plus encore
               </p>
-              <p className="text-[12.5px] text-mist-200 mt-0.5">
-                Progresse, accumule des points et atteins la première place.
-              </p>
+              <h2 className="font-display text-[22px] md:text-[28px] font-black tracking-tight text-night-900 leading-tight">
+                Explore les autres univers
+              </h2>
             </div>
-            <Link
-              href="/qcm"
-              className={cn(
-                "inline-flex shrink-0 items-center gap-2 rounded-full",
-                "bg-gradient-to-r from-skyblue-500 to-skyblue-700 text-white",
-                "px-5 py-2.5 text-[12.5px] font-bold uppercase tracking-[0.12em]",
-                "shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all",
-              )}
-            >
-              <TrendingUp className="h-4 w-4" strokeWidth={2.6} />
-              Découvrir mon classement
-            </Link>
-          </motion.div>
-        </section>
+            <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+              {otherCategories.map((c, i) => (
+                <CategoryChampionshipCard key={c.id} category={c} index={i} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
@@ -584,6 +617,149 @@ function TrendingCard({ trending, index }: { trending: TrendingMetier; index: nu
             strokeWidth={2.8}
           />
         </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// ─── KingdomCard ─────────────────────────────────────────────────────────────
+// Grande card "Royaume" — réservée aux 4 catégories qui ont un PNG mascot.
+// Structure :
+//   1. Bannière haute avec icône carrée + dégradé couleur catégorie
+//   2. Mascotte 3D rendered en plein milieu (PNG transparent)
+//   3. Body : titre "Royaume {nom}" + nb talents + Top 3 métiers numérotés
+//   4. CTA "Voir le classement →" couleur catégorie
+function KingdomCard({
+  category,
+  index,
+}: {
+  category: CategoryWithStats;
+  index: number;
+}) {
+  const Icon = iconForCategory(category.id);
+  // Nom court pour "Royaume X" — on garde uniquement le 1er mot avant " & "
+  const shortLabel = category.frLabel
+    .replace("Création & Visuel", "Créatif")
+    .replace("Tech & Ingénierie logicielle", "Tech")
+    .replace("Santé & Soins", "Santé")
+    .replace("Data & IA", "Data & IA");
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease: [0.16, 1, 0.3, 1] }}
+    >
+      <Link
+        href={`/metiers/${category.id}`}
+        className={cn(
+          "group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white",
+          "ring-1 ring-inset ring-ink-700/10 shadow-card",
+          "hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200",
+        )}
+      >
+        {/* Bannière haute — illustration mascotte + dégradé sky */}
+        <div
+          className="relative overflow-hidden"
+          style={{
+            background: `linear-gradient(180deg, ${category.color}22 0%, ${category.color}0a 100%)`,
+          }}
+        >
+          {/* Bandeau iconique tag couleur catégorie */}
+          <div
+            className="absolute top-3 left-3 z-10 grid h-9 w-9 place-items-center rounded-lg shadow-md"
+            style={{ background: category.color }}
+          >
+            <Icon className="h-4 w-4 text-white" strokeWidth={2.6} />
+          </div>
+
+          {/* Mascotte PNG — fill du wrapper avec un ratio fixe */}
+          {category.mascotSrc && (
+            <div className="relative aspect-[5/4] w-full">
+              <Image
+                src={category.mascotSrc}
+                alt={`Mascotte ${shortLabel}`}
+                fill
+                sizes="(min-width: 1024px) 320px, (min-width: 640px) 50vw, 100vw"
+                className="object-contain"
+                priority={index < 4}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="relative flex-1 flex flex-col p-4 md:p-5">
+          {/* Titre — "Royaume {nom}" avec accent couleur catégorie */}
+          <h3 className="font-display text-[18px] md:text-[20px] font-black tracking-tight leading-tight text-night-900">
+            Royaume{" "}
+            <span style={{ color: category.color }}>{shortLabel}</span>
+          </h3>
+
+          {/* Compteur talents */}
+          <div className="mt-1.5 inline-flex items-center gap-1.5 text-[12.5px] font-bold text-mist-200">
+            <Users className="h-3.5 w-3.5" strokeWidth={2.6} style={{ color: category.color }} />
+            <span className="tabular-nums text-night-900">
+              {category.talentCount.toLocaleString("fr-FR")}
+            </span>{" "}
+            talents
+          </div>
+
+          {/* Top 3 métiers numérotés */}
+          {category.topProfessions && category.topProfessions.length > 0 && (
+            <ul className="mt-3 space-y-1.5">
+              {category.topProfessions.map((p, i) => (
+                <li
+                  key={p.id}
+                  className="flex items-center gap-2 text-[12.5px] text-mist-100"
+                >
+                  <span
+                    className={cn(
+                      "grid h-5 w-5 place-items-center rounded-full font-display text-[10.5px] font-black text-white tabular-nums shadow-sm",
+                    )}
+                    style={{
+                      background:
+                        i === 0
+                          ? "linear-gradient(180deg, #FFD86A, #C99A00)"
+                          : i === 1
+                            ? "linear-gradient(180deg, #E5E7EB, #94A3B8)"
+                            : "linear-gradient(180deg, #FCAB6E, #B45309)",
+                    }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="font-semibold truncate">{p.frLabel}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {/* CTA footer */}
+          <div
+            className="mt-4 pt-3 border-t flex items-center justify-between"
+            style={{ borderColor: `${category.color}26` }}
+          >
+            <span
+              className="text-[11.5px] font-bold uppercase tracking-[0.14em]"
+              style={{ color: category.color }}
+            >
+              Voir le classement
+            </span>
+            <ArrowRight
+              className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1"
+              strokeWidth={2.8}
+              style={{ color: category.color }}
+            />
+          </div>
+        </div>
+
+        {/* Badge "🔥 LE PLUS ACTIF" si applicable */}
+        {category.isMostActive && (
+          <span className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-full bg-white shadow-card ring-1 ring-inset ring-energy-300/60 px-2 py-0.5 text-[9.5px] font-black uppercase tracking-[0.12em] text-energy-700">
+            <Flame className="h-3 w-3" strokeWidth={2.8} />
+            Le plus actif
+          </span>
+        )}
       </Link>
     </motion.div>
   );
