@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   Briefcase,
-  CreditCard,
   type LucideIcon,
   UserCircle2,
   Volume2,
@@ -89,7 +88,7 @@ const NAV_STUDIO: NavItem[] = [
   // côté studio — c'est le même concept fonctionnel (un QCM).
   { href: "/qcm-builder",   label: "QCM & Éval.",  icon: "qcm" },
   { href: "/messages",      label: "Messagerie",   icon: "messagerie" },
-  { href: "/abonnement",    label: "Abonnement",   lucide: CreditCard,    lucideTint: "#10B981" },
+  { href: "/abonnement",    label: "Abonnement",   icon: "abonnement" },
 ];
 
 function navFor(audience: Audience | null): NavItem[] {

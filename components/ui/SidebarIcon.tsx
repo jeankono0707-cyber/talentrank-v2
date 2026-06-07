@@ -35,6 +35,7 @@ export type SidebarIconName =
   | "profil"
   | "opportunites"
   | "messagerie"
+  | "abonnement"
   | "settings"
   | "more";
 
@@ -44,23 +45,24 @@ interface Props {
   className?: string;
 }
 
-// Mapping nom→fichier PNG (illustrations 3D officielles, lumière chaude).
+// Mapping nom→fichier PNG (icônes sur-mesure officielles, charte Nadia).
 // Quand un nom est listé ici, on rend l'image au lieu du SVG hand-built.
 //
-// MIGRATION CHARTE NADIA v5 : les 5 entrées TALENT principales utilisent
-// maintenant les icônes sur-mesure de la charte officielle (bleu+orange
-// cohérent avec le wordmark). Voir public/brand/ pour les PNG.
+// CHARTE COMPLÈTE : les 7 entrées sidebar (5 TALENT + 2 STUDIO supplémentaires)
+// utilisent les PNG officiels bleu+orange cohérents avec le wordmark.
 const PNG_FOR: Partial<Record<SidebarIconName, { src: string; alt: string }>> = {
-  // ─── Icônes brand officielles (charte Nadia v5) ────────────────────
+  // ─── Icônes brand officielles (TALENT + partagées) ──────────────────
   qcm:          { src: "/brand/QCM.png",          alt: "Mon QCM"      },
   ranking:      { src: "/brand/CLASSEMENTS.png",  alt: "Classements"  },
   profil:       { src: "/brand/PROFIL.png",       alt: "Mon profil"   },
   opportunites: { src: "/brand/OPPORTUNITE.png",  alt: "Opportunités" },
   messagerie:   { src: "/brand/MESSAGERIE.png",   alt: "Messagerie"   },
-  // ─── Anciens PNG illustrés (à migrer plus tard) ─────────────────────
+  // ─── Icônes brand officielles (STUDIO spécifiques) ──────────────────
+  chasse:       { src: "/brand/WANTED.png",       alt: "Chasse"       },
+  abonnement:   { src: "/brand/ABONNEMENT.png",   alt: "Abonnement"   },
+  // ─── Anciens PNG illustrés (à migrer si besoin) ─────────────────────
   home:     { src: "/images/banner/1.png", alt: "Pancarte Welcome" },
   explorer: { src: "/images/banner/5.png", alt: "Carte au trésor et boussole" },
-  chasse:   { src: "/images/banner/4.png", alt: "Affiche Wanted Dead or Alive" },
 };
 
 export function SidebarIcon({ name, size = 48, className }: Props) {
