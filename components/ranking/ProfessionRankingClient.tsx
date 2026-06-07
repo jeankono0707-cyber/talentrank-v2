@@ -11,6 +11,8 @@ import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { MyRankBanner } from "@/components/leaderboard/MyRankBanner";
 import { getCategory, getProfession, professionLabel } from "@/lib/professions";
 import { iconForCategory } from "@/lib/profession-icons";
+import { CategoryMascot } from "@/components/ui/CategoryMascot";
+import { mascotForCategory } from "@/lib/category-mascots";
 import { findCountry } from "@/lib/countries";
 import { getTalentsByProfession, type Talent } from "@/lib/mock-talents";
 import { EXPERIENCE_ORDER, experienceClassForYears, type ExperienceClassId } from "@/lib/experience-class";
@@ -132,21 +134,28 @@ export function ProfessionRankingClient({ professionId }: Props) {
 
       {/* ─── Hero — titre énorme ──────────────────────────────────────────── */}
       <header className="mt-10 text-center max-w-3xl mx-auto">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-ink-700/15 shadow-card px-3 py-1">
-          <span
-            className="inline-grid h-5 w-5 place-items-center rounded-md"
-            style={{ background: `${category.color}25` }}
-          >
-            <CatIcon
-              className="h-3 w-3"
-              strokeWidth={2.6}
-              style={{ color: category.color }}
-            />
-          </span>
-          <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-mist-400">
-            {category.frLabel}
-          </span>
-        </div>
+        {/* Mascotte PNG si dispo (royaume), sinon mini chip catégorie. */}
+        {mascotForCategory(category.id) ? (
+          <div className="flex justify-center mb-2">
+            <CategoryMascot id={category.id} size={120} priority />
+          </div>
+        ) : (
+          <div className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-ink-700/15 shadow-card px-3 py-1">
+            <span
+              className="inline-grid h-5 w-5 place-items-center rounded-md"
+              style={{ background: `${category.color}25` }}
+            >
+              <CatIcon
+                className="h-3 w-3"
+                strokeWidth={2.6}
+                style={{ color: category.color }}
+              />
+            </span>
+            <span className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-mist-400">
+              {category.frLabel}
+            </span>
+          </div>
+        )}
 
         <h1
           className="mt-6 font-display font-black tracking-tight text-mist-50"

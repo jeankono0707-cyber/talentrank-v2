@@ -16,6 +16,8 @@ import { iconForCategory } from "@/lib/profession-icons";
 import { TALENTS, talentProfessionId } from "@/lib/mock-talents";
 import { SmartBackButton } from "@/components/ui/SmartBackButton";
 import { AvatarChip } from "@/components/ui/AvatarChip";
+import { CategoryMascot } from "@/components/ui/CategoryMascot";
+import { mascotForCategory } from "@/lib/category-mascots";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -94,9 +96,22 @@ export function MetiersCategoryClient({ categoryId }: Props) {
               className="text-[10.5px] font-bold uppercase tracking-[0.2em]"
               style={{ color: cat.color }}
             >
-              Catégorie
+              {mascotForCategory(categoryId) ? "Royaume" : "Catégorie"}
             </span>
           </div>
+
+          {/* Grande mascotte PNG charte si dispo (creative/tech/data/health). */}
+          {mascotForCategory(categoryId) && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+              className="flex justify-center mb-4"
+            >
+              <CategoryMascot id={categoryId} size={140} priority />
+            </motion.div>
+          )}
+
           <h1 className="font-display text-[36px] md:text-[48px] font-black tracking-tight leading-[1.05] text-night-900">
             {cat.frLabel}
           </h1>
