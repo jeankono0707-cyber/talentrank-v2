@@ -15,8 +15,10 @@ export interface World {
   name: string;
   /** Métiers exemples concrets pour donner de l'identité. */
   roles: string;
-  /** Mascotte LeagueMascot id. */
+  /** Mascotte LeagueMascot id — fallback SVG si pas de mascotImg. */
   mascot: TierId;
+  /** Path vers le PNG sur-mesure (charte Nadia). Override la mascotte SVG. */
+  mascotImg?: string;
   /** Couleur d'ambiance — halo + accent. */
   accent: string;
   /** Background dégradé doux unique au monde. */
@@ -33,7 +35,8 @@ export const WORLDS: World[] = [
     emoji: "🎨",
     name: "Création & Visuel",
     roles: "Animateurs · VFX · Concept Art · Storyboard",
-    mascot: "emerging", // renard
+    mascot: "emerging",
+    mascotImg: "/brand/CREATION.png",
     accent: "#F472B6",
     bg: "linear-gradient(135deg, #FFE4F2 0%, #FFD0E5 100%)",
     span: "sm:col-span-2 sm:row-span-2",
@@ -44,7 +47,8 @@ export const WORLDS: World[] = [
     emoji: "💻",
     name: "Tech & Code",
     roles: "Frontend · Backend · DevOps · Mobile",
-    mascot: "elite", // dragon
+    mascot: "elite",
+    mascotImg: "/brand/TECH.png",
     accent: "#22D3EE",
     bg: "linear-gradient(135deg, #E0F7FF 0%, #BAEEFF 100%)",
     span: "sm:col-span-2",
@@ -54,7 +58,8 @@ export const WORLDS: World[] = [
     emoji: "🧠",
     name: "Data & IA",
     roles: "Data Science · ML · Analytics · MLOps",
-    mascot: "trending", // aigle
+    mascot: "trending",
+    mascotImg: "/brand/DATA_IA.png",
     accent: "#A78BFA",
     bg: "linear-gradient(135deg, #EEE9FF 0%, #DDD0FF 100%)",
     span: "sm:col-span-2",
@@ -64,7 +69,7 @@ export const WORLDS: World[] = [
     emoji: "🥖",
     name: "Artisanat",
     roles: "Boulangers · Chefs · Pâtissiers · Sommeliers",
-    mascot: "new", // poussin
+    mascot: "new",
     accent: "#FFC800",
     bg: "linear-gradient(135deg, #FFF6D6 0%, #FFEAA0 100%)",
     span: "sm:col-span-1",
@@ -74,7 +79,8 @@ export const WORLDS: World[] = [
     emoji: "🩺",
     name: "Santé",
     roles: "Médecins · Infirmiers · Kinés · Sage-femmes",
-    mascot: "senior", // lion
+    mascot: "senior",
+    mascotImg: "/brand/SANTE.png",
     accent: "#FF8FA3",
     bg: "linear-gradient(135deg, #FFE8EC 0%, #FFCDD2 100%)",
     span: "sm:col-span-1",

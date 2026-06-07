@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
@@ -85,11 +86,30 @@ export function WorldCard({ world, delay }: { world: World; delay: number }) {
           )}
           style={{ transformOrigin: "50% 80%" }}
         >
-          <LeagueMascot
-            tier={world.mascot}
-            size={isFeatured ? 110 : 64}
-            className="drop-shadow-[0_8px_14px_rgba(0,0,0,0.22)]"
-          />
+          {world.mascotImg ? (
+            // PNG sur-mesure charte Nadia — prioritaire sur la mascotte SVG
+            <div
+              className="relative drop-shadow-[0_8px_14px_rgba(0,0,0,0.22)]"
+              style={{
+                width: isFeatured ? 180 : 96,
+                height: isFeatured ? 180 : 96,
+              }}
+            >
+              <Image
+                src={world.mascotImg}
+                alt={`Mascotte ${world.name}`}
+                fill
+                sizes={isFeatured ? "180px" : "96px"}
+                className="object-contain"
+              />
+            </div>
+          ) : (
+            <LeagueMascot
+              tier={world.mascot}
+              size={isFeatured ? 110 : 64}
+              className="drop-shadow-[0_8px_14px_rgba(0,0,0,0.22)]"
+            />
+          )}
         </motion.span>
 
         {/* Text block */}
