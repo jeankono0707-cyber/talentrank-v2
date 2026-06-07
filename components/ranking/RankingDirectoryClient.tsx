@@ -145,7 +145,7 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
             href="/villes"
             className="inline-flex items-center gap-1.5 rounded-full bg-white ring-1 ring-inset ring-ink-700/10 hover:ring-ink-700/25 px-3.5 py-1.5 text-[11.5px] font-bold text-mist-100 transition shadow-card hover:shadow-card-hover"
           >
-            <MapPin className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.6} />
+            <MapPin className="h-3.5 w-3.5 text-energy-700" strokeWidth={2.6} />
             Voir aussi : talents par ville
             <ArrowRight className="h-3 w-3 text-mist-400" strokeWidth={2.6} />
           </Link>
@@ -155,7 +155,7 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
       {/* Search bar */}
       <div className="mt-10 mx-auto max-w-xl">
         <div
-          className="relative flex items-center gap-2 rounded-full bg-white ring-2 ring-ink-700/10 focus-within:ring-amber-300/60 transition-all duration-200 pl-5 pr-2 py-2"
+          className="relative flex items-center gap-2 rounded-full bg-white ring-2 ring-ink-700/10 focus-within:ring-energy-300/60 transition-all duration-200 pl-5 pr-2 py-2"
           style={{
             boxShadow:
               "0 1px 0 rgba(255,255,255,0.85) inset, 0 12px 32px -16px rgba(0,0,0,0.18), 0 2px 6px -2px rgba(0,0,0,0.06)",
@@ -208,11 +208,11 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
       {audience !== "studio" && (
         <section className="mt-14 mx-auto max-w-3xl">
           <div className="flex items-center gap-2 mb-4">
-            <Trophy className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.6} />
-            <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+            <Trophy className="h-3.5 w-3.5 text-energy-700" strokeWidth={2.6} />
+            <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-energy-800">
               Mon classement métier
             </h2>
-            <span className="h-px flex-1 bg-amber-200/60" />
+            <span className="h-px flex-1 bg-energy-200/60" />
           </div>
 
           {myProfession ? (
@@ -225,7 +225,7 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
               <div className="mt-3 flex justify-center">
                 <a
                   href="#tous-les-metiers"
-                  className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-amber-800 hover:text-amber-900 transition"
+                  className="inline-flex items-center gap-1.5 text-[11.5px] font-bold text-energy-800 hover:text-energy-900 transition"
                 >
                   <Pin className="h-3 w-3" strokeWidth={2.6} />
                   Épingler un autre métier
@@ -239,7 +239,7 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
               </p>
               <Link
                 href="/dashboard/talent/profile"
-                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-500 px-4 py-2 text-[12px] font-bold text-white hover:bg-amber-600 transition"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-energy-500 px-4 py-2 text-[12px] font-bold text-white hover:bg-energy-600 transition"
               >
                 Choisir mon métier
                 <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.6} />
@@ -256,11 +256,11 @@ export function RankingDirectoryClient({ professions, categories }: Props) {
       {pinnedCards.length > 0 && (
         <section className="mt-14 mx-auto max-w-5xl">
           <div className="flex items-center gap-2 mb-4">
-            <Pin className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.6} />
-            <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+            <Pin className="h-3.5 w-3.5 text-energy-700" strokeWidth={2.6} />
+            <h2 className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-energy-800">
               {audience === "studio" ? "Tes métiers épinglés" : "Mes métiers comparés"} · {pinnedCards.length}
             </h2>
-            <span className="h-px flex-1 bg-amber-200/60" />
+            <span className="h-px flex-1 bg-energy-200/60" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {pinnedCards.map((p) => (
@@ -337,7 +337,7 @@ function ProfessionCard({
         className={cn(
           "group card-white relative block overflow-hidden p-4 transition-all duration-300",
           "hover:-translate-y-0.5",
-          isPinned && "ring-2 ring-amber-400/40",
+          isPinned && "ring-2 ring-energy-400/40",
         )}
         style={
           isPinned

@@ -86,11 +86,11 @@ export function ProfessionRankingWrapper({
           cohorte réelle). Visible uniquement quand scope ≠ general. */}
       {scope !== "general" && (
         <div
-          className="mb-5 rounded-2xl px-4 py-3 flex items-start gap-2.5 ring-1 ring-inset ring-amber-300/40"
+          className="mb-5 rounded-2xl px-4 py-3 flex items-start gap-2.5 ring-1 ring-inset ring-energy-300/40"
           style={{ background: "#FFF8E1" }}
         >
-          <Info className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" strokeWidth={2.4} />
-          <p className="text-[12.5px] text-amber-900 leading-relaxed">
+          <Info className="h-4 w-4 text-energy-700 mt-0.5 shrink-0" strokeWidth={2.4} />
+          <p className="text-[12.5px] text-energy-900 leading-relaxed">
             <span className="font-bold">Filtre {scope === "city" ? "ville" : scope === "region" ? "région" : "pays"} actif</span>
             {" — "}
             la cohorte régionalisée arrive avec les premiers passages

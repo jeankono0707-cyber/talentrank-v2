@@ -67,7 +67,7 @@ export function PinButton({
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11.5px] font-bold uppercase tracking-[0.06em] transition",
           pinned
-            ? "bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-400/40 hover:bg-amber-200"
+            ? "bg-energy-100 text-energy-800 ring-1 ring-inset ring-energy-400/40 hover:bg-energy-200"
             : "bg-white text-mist-100 ring-1 ring-inset ring-ink-700/10 hover:bg-ink-850",
         )}
       >
@@ -97,7 +97,7 @@ export function PinButton({
         "grid place-items-center rounded-full transition shrink-0",
         size === 5 ? "h-9 w-9" : "h-8 w-8",
         pinned
-          ? "bg-amber-100 text-amber-700 ring-1 ring-inset ring-amber-400/40 hover:bg-amber-200"
+          ? "bg-energy-100 text-energy-700 ring-1 ring-inset ring-energy-400/40 hover:bg-energy-200"
           : "bg-white text-mist-400 ring-1 ring-inset ring-ink-700/10 hover:text-mist-100 hover:bg-ink-850",
       )}
     >

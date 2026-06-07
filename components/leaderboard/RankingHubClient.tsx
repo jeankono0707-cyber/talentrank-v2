@@ -84,13 +84,13 @@ interface Props {
 
 export function RankingHubClient({ professions, categories, trending }: Props) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-amber-50/30 via-transparent to-transparent">
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-energy-50/30 via-transparent to-transparent">
       {/* Décor subtil — soft glow ambre derrière le hero */}
       <div
         className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 h-[400px] w-[800px] -z-10 opacity-50"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(245,158,11,0.15) 0%, transparent 60%)",
+            "radial-gradient(ellipse at center, rgba(255,138,0,0.13) 0%, transparent 60%)",
         }}
       />
 
@@ -102,16 +102,16 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           className="text-center max-w-3xl mx-auto"
         >
-          <div className="inline-flex items-center gap-2 rounded-full bg-amber-100/60 px-4 py-1.5 ring-1 ring-inset ring-amber-300/40 mb-5">
-            <Trophy className="h-3.5 w-3.5 text-amber-700" strokeWidth={2.6} />
-            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-800">
+          <div className="inline-flex items-center gap-2 rounded-full bg-energy-100/60 px-4 py-1.5 ring-1 ring-inset ring-energy-300/40 mb-5">
+            <Trophy className="h-3.5 w-3.5 text-energy-700" strokeWidth={2.6} />
+            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-energy-800">
               Classements TalentRank
             </span>
           </div>
           <h1 className="font-display text-[40px] md:text-[58px] font-black tracking-tight leading-[1.05] text-night-900">
             Qui est le meilleur,
             <br />
-            <span className="bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-deepblue-700 to-deepblue-900 bg-clip-text text-transparent">
               dans ton métier ?
             </span>
           </h1>
@@ -145,7 +145,7 @@ export function RankingHubClient({ professions, categories, trending }: Props) {
         {trending.length > 0 && (
           <section className="mt-20">
             <SectionHeader
-              icon={<Flame className="h-4 w-4 text-amber-600" strokeWidth={2.6} />}
+              icon={<Flame className="h-4 w-4 text-energy-600" strokeWidth={2.6} />}
               eyebrow="Tendances de la semaine"
               title="Les classements les plus regardés"
               subtitle="Là où la compétition est la plus chaude. Clique pour voir le rang."
@@ -315,14 +315,14 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
         className={cn(
           "relative flex items-center gap-3 rounded-3xl bg-white ring-1 ring-inset transition-all shadow-card",
           focused
-            ? "ring-amber-400/60 shadow-[0_12px_40px_-12px_rgba(245,158,11,0.4)]"
+            ? "ring-energy-400/60 shadow-[0_12px_40px_-12px_rgba(255,138,0,0.4)]"
             : "ring-ink-700/15 hover:ring-ink-700/25",
         )}
       >
         <Search
           className={cn(
             "ml-5 h-5 w-5 transition-colors",
-            focused ? "text-amber-700" : "text-mist-400",
+            focused ? "text-energy-700" : "text-mist-400",
           )}
           strokeWidth={2.6}
         />
@@ -342,7 +342,7 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
         <button
           onClick={() => matches[0] && handleSelect(matches[0].id)}
           disabled={!matches[0]}
-          className="mr-2 grid h-12 w-12 md:h-14 md:w-14 place-items-center rounded-2xl bg-gradient-to-br from-amber-400 to-amber-600 text-white shadow-card hover:shadow-card-hover hover:scale-105 transition-all disabled:opacity-40 disabled:hover:scale-100"
+          className="mr-2 grid h-12 w-12 md:h-14 md:w-14 place-items-center rounded-2xl bg-gradient-to-br from-energy-400 to-energy-600 text-white shadow-card hover:shadow-card-hover hover:scale-105 transition-all disabled:opacity-40 disabled:hover:scale-100"
           aria-label="Lancer la recherche"
         >
           <ArrowRight className="h-5 w-5" strokeWidth={3} />
@@ -359,7 +359,7 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
             <button
               key={p.id}
               onClick={() => handleSelect(p.id)}
-              className="rounded-full bg-white/80 ring-1 ring-inset ring-ink-700/10 px-3 py-1 text-[12px] font-semibold text-mist-100 hover:bg-amber-50 hover:ring-amber-300/40 hover:text-amber-800 transition"
+              className="rounded-full bg-white/80 ring-1 ring-inset ring-ink-700/10 px-3 py-1 text-[12px] font-semibold text-mist-100 hover:bg-energy-50 hover:ring-energy-300/40 hover:text-energy-800 transition"
             >
               {p.frLabel}
             </button>
@@ -388,7 +388,7 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
                   onMouseEnter={() => setHighlight(i)}
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 text-left transition-colors",
-                    i === highlight ? "bg-amber-50" : "hover:bg-ink-50",
+                    i === highlight ? "bg-energy-50" : "hover:bg-ink-50",
                   )}
                 >
                   <span
@@ -421,8 +421,8 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
             transition={{ duration: 0.15 }}
             className="absolute left-0 right-0 top-full mt-2 z-50 rounded-2xl bg-white shadow-2xl ring-1 ring-ink-700/10 overflow-hidden"
           >
-            <div className="px-4 py-2.5 bg-amber-50/50 border-b border-amber-200/30">
-              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-800">
+            <div className="px-4 py-2.5 bg-energy-50/50 border-b border-energy-200/30">
+              <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-energy-800">
                 Parcourir par domaine
               </p>
             </div>
@@ -432,7 +432,7 @@ function HeroSearchBar({ professions }: { professions: ProfessionWithStats[] }) 
                 <Link
                   key={c.id}
                   href={`/metiers/${c.id}`}
-                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-amber-50"
+                  className="w-full flex items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-energy-50"
                   onClick={() => setFocused(false)}
                 >
                   <span
@@ -552,7 +552,7 @@ function TrendingCard({ trending, index }: { trending: TrendingMetier; index: nu
             </span>
           </div>
           {trending.deltaThisWeek !== undefined && trending.deltaThisWeek > 0 && (
-            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 text-amber-800 px-2 py-0.5 text-[10px] font-black">
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-100 text-energy-800 px-2 py-0.5 text-[10px] font-black">
               <TrendingUp className="h-3 w-3" strokeWidth={3} />
               +{trending.deltaThisWeek}
             </span>
@@ -577,7 +577,7 @@ function TrendingCard({ trending, index }: { trending: TrendingMetier; index: nu
         )}
 
         {/* CTA */}
-        <div className="flex items-center gap-1 text-[11.5px] font-bold uppercase tracking-[0.14em] text-amber-700 group-hover:text-amber-800 transition">
+        <div className="flex items-center gap-1 text-[11.5px] font-bold uppercase tracking-[0.14em] text-energy-700 group-hover:text-energy-800 transition">
           Voir le classement
           <ArrowRight
             className="h-3 w-3 transition-transform group-hover:translate-x-0.5"

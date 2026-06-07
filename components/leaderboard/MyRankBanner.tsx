@@ -72,13 +72,16 @@ function mockMyRank(professionId: string, totalTalents: number): MyRank {
   };
 }
 
+// Palette ligues alignée charte : deepblue (autorité Légende) →
+// energy (Maître) → skyblue (Expert/Avancé) → mid blues → slate (Apprenti).
+// L'or et l'argent restent réservés aux médailles podium (universel).
 const LEAGUE_STYLES = {
-  S: { bg: "from-red-500 to-orange-600", glow: "shadow-[0_4px_16px_-4px_rgba(239,68,68,0.6)]", text: "Légende" },
-  A: { bg: "from-amber-400 to-amber-600", glow: "shadow-[0_4px_16px_-4px_rgba(245,158,11,0.6)]", text: "Maître" },
-  B: { bg: "from-violet-500 to-purple-600", glow: "shadow-[0_4px_16px_-4px_rgba(139,92,246,0.5)]", text: "Expert" },
-  C: { bg: "from-sky-500 to-blue-600", glow: "shadow-[0_4px_16px_-4px_rgba(14,165,233,0.5)]", text: "Avancé" },
-  D: { bg: "from-emerald-500 to-green-600", glow: "shadow-[0_4px_16px_-4px_rgba(16,185,129,0.5)]", text: "Confirmé" },
-  E: { bg: "from-slate-400 to-slate-600", glow: "shadow-[0_4px_16px_-4px_rgba(100,116,139,0.5)]", text: "Apprenti" },
+  S: { bg: "from-deepblue-700 to-deepblue-900",  glow: "shadow-[0_4px_16px_-4px_rgba(10,30,63,0.55)]",  text: "Légende"  },
+  A: { bg: "from-energy-400 to-energy-600",       glow: "shadow-[0_4px_16px_-4px_rgba(255,138,0,0.5)]",  text: "Maître"   },
+  B: { bg: "from-skyblue-400 to-skyblue-600",     glow: "shadow-[0_4px_16px_-4px_rgba(30,107,255,0.5)]", text: "Expert"   },
+  C: { bg: "from-skyblue-300 to-skyblue-500",     glow: "shadow-[0_4px_16px_-4px_rgba(111,144,255,0.4)]",text: "Avancé"   },
+  D: { bg: "from-deepblue-300 to-deepblue-500",   glow: "shadow-[0_4px_16px_-4px_rgba(58,84,140,0.4)]",  text: "Confirmé" },
+  E: { bg: "from-slate-400 to-slate-600",         glow: "shadow-[0_4px_16px_-4px_rgba(100,116,139,0.4)]",text: "Apprenti" },
 } as const;
 
 export function MyRankBanner({ professionId, professionLabel, totalTalents, rank }: Props) {
@@ -111,14 +114,14 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
-        className="relative rounded-3xl bg-white shadow-card ring-1 ring-inset ring-amber-300/40 overflow-hidden"
+        className="relative rounded-3xl bg-white shadow-card ring-1 ring-inset ring-energy-300/40 overflow-hidden"
       >
         {/* Subtle gradient bg */}
         <div
           className="pointer-events-none absolute inset-0 opacity-50"
           style={{
             background:
-              "linear-gradient(135deg, rgba(245,158,11,0.08) 0%, transparent 50%, rgba(245,158,11,0.04) 100%)",
+              "linear-gradient(135deg, rgba(255,138,0,0.08) 0%, transparent 50%, rgba(255,138,0,0.04) 100%)",
           }}
         />
 
@@ -152,7 +155,7 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
               </motion.button>
 
               <div className="min-w-0">
-                <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-amber-700">
+                <p className="text-[10.5px] font-bold uppercase tracking-[0.18em] text-energy-700">
                   Toi · {league.text}
                 </p>
                 <p className="font-display text-[24px] md:text-[28px] font-black tracking-tight text-night-900 leading-tight">
@@ -196,11 +199,11 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
                   <motion.span
                     animate={{ scale: [1, 1.06, 1] }}
                     transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-                    className="inline-flex items-center gap-1 font-bold text-amber-700"
+                    className="inline-flex items-center gap-1 font-bold text-energy-700"
                   >
                     <TrendingUp className="h-3 w-3" strokeWidth={3} />
                     +{my.deltaThisWeek} place{my.deltaThisWeek > 1 ? "s" : ""} cette semaine
-                    <Flame className="h-3 w-3 text-amber-500" strokeWidth={2.4} />
+                    <Flame className="h-3 w-3 text-energy-500" strokeWidth={2.4} />
                   </motion.span>
                 ) : my.deltaThisWeek < 0 ? (
                   <span className="inline-flex items-center gap-1 font-bold text-mist-300">
@@ -211,7 +214,7 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
                 )}
                 <Link
                   href="/qcm"
-                  className="inline-flex items-center gap-1 font-bold text-amber-700 hover:text-amber-800 transition"
+                  className="inline-flex items-center gap-1 font-bold text-energy-700 hover:text-energy-800 transition"
                 >
                   <Sparkles className="h-3 w-3" strokeWidth={2.6} />
                   Pour monter →
@@ -231,7 +234,7 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
         aria-hidden={!scrolled}
       >
         <div className="container-page pt-2 pointer-events-auto">
-          <div className="mx-auto max-w-3xl rounded-2xl bg-white/95 backdrop-blur-sm shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] ring-1 ring-inset ring-amber-300/40 px-4 py-2.5 flex items-center gap-3">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-white/95 backdrop-blur-sm shadow-[0_8px_28px_-12px_rgba(0,0,0,0.18)] ring-1 ring-inset ring-energy-300/40 px-4 py-2.5 flex items-center gap-3">
             <div
               className={cn(
                 "shrink-0 grid place-items-center rounded-lg bg-gradient-to-br h-8 w-8",
@@ -251,16 +254,16 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
               <p className="text-[10.5px] text-mist-400 leading-tight mt-0.5 truncate">
                 Niv {my.level} · {my.xpCurrent}/{my.xpNeeded} XP
                 {my.deltaThisWeek > 0 && (
-                  <span className="text-amber-700 font-bold"> · +{my.deltaThisWeek} 🔥</span>
+                  <span className="text-energy-700 font-bold"> · +{my.deltaThisWeek} 🔥</span>
                 )}
               </p>
             </div>
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               aria-label="Revenir en haut"
-              className="shrink-0 grid h-8 w-8 place-items-center rounded-full bg-amber-100 hover:bg-amber-200 transition"
+              className="shrink-0 grid h-8 w-8 place-items-center rounded-full bg-energy-100 hover:bg-energy-200 transition"
             >
-              <ChevronUp className="h-4 w-4 text-amber-800" strokeWidth={2.8} />
+              <ChevronUp className="h-4 w-4 text-energy-800" strokeWidth={2.8} />
             </button>
           </div>
         </div>
