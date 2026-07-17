@@ -13,9 +13,28 @@ const COLUMNS = [
     label: "Plateforme",
     links: [
       { href: "/welcome", label: "Démarrer" },
-      { href: "/ranking", label: "Classements" },
-      { href: "/qcm", label: "Passer un QCM" },
       { href: "/metiers", label: "Explorer les métiers" },
+      { href: "/ranking", label: "Classements" },
+      { href: "/villes", label: "Talents par ville" },
+      { href: "/pricing", label: "Tarifs" },
+    ],
+  },
+  {
+    label: "Talents",
+    links: [
+      { href: "/talent", label: "Espace Talent" },
+      { href: "/qcm", label: "QCM officiels" },
+      { href: "/dashboard/talent/profile", label: "Mon profil" },
+      { href: "/parrainage", label: "Parrainage" },
+    ],
+  },
+  {
+    label: "Entreprises",
+    links: [
+      { href: "/studio", label: "Espace Entreprise" },
+      { href: "/chasse", label: "Chasse de talents" },
+      { href: "/qcm-builder", label: "QCM Builder" },
+      { href: "/candidats", label: "Mes candidats" },
     ],
   },
   {
@@ -23,6 +42,8 @@ const COLUMNS = [
     links: [
       { href: "/about", label: "À propos" },
       { href: "mailto:hello@talentrank.io", label: "Contact" },
+      { href: "/parrainage", label: "Parrainer un ami" },
+      { href: "/pricing", label: "FAQ" },
     ],
   },
 ] as const;
@@ -78,12 +99,13 @@ export function Footer() {
               À propos
             </Link>
             <span aria-hidden>·</span>
-            <a
-              href="mailto:hello@talentrank.io"
-              className="hover:text-mist-100 transition"
-            >
-              Contact
-            </a>
+            <Link href="/pricing" className="hover:text-mist-100 transition">
+              Tarifs
+            </Link>
+            <span aria-hidden>·</span>
+            <Link href="/parrainage" className="hover:text-mist-100 transition">
+              Parrainage
+            </Link>
           </div>
           <p>
             Made with 🤠 by{" "}

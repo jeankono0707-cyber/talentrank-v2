@@ -71,14 +71,12 @@ interface NavItem {
 // Pour Opportunités/Messagerie/Candidats/Abonnement → lucide line icons
 // avec une chip de couleur (cohérent avec le reste sans dupliquer le PNG style).
 
-// Décision directeur : réduire à 3 items essentiels pour le talent.
-// Opportunités et Messagerie sont retirées tant qu'aucune vraie donnée
-// n'existe (messagerie bloquée Phase 5, aucune vraie opportunité listée).
-// On rajoutera quand ce sera prêt et réel.
 const NAV_TALENT: NavItem[] = [
   { href: "/qcm",                      label: "Mon QCM",      icon: "qcm" },
   { href: "/ranking",                  label: "Classements",  icon: "ranking" },
   { href: "/dashboard/talent/profile", label: "Mon profil",   icon: "profil" },
+  { href: "/opportunites",             label: "Opportunités", icon: "opportunites" },
+  { href: "/messages",                 label: "Messagerie",   icon: "messagerie" },
 ];
 
 const NAV_STUDIO: NavItem[] = [

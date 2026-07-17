@@ -27,10 +27,10 @@ export const FEATURES = {
 
   // ─── Audiences ─────────────────────────────────────────────────────────
   /** Mode Studio (Chasse, Candidats, QCM Builder, Messagerie, Abonnement).
-   *  OFF : le studio complet n'a pas encore de vraies fonctionnalités
-   *  utiles (messagerie bloquée, pas d'entreprises réelles).
-   *  Impact : le /welcome n'offre QUE "Je suis Talent" et "Juste curieux". */
-  studioAudience: false,
+   *  Réactivé : le user teste les 2 modes. On garde tout accessible en UI
+   *  même si la messagerie est encore mock. Les mécaniques de gamification
+   *  fausses (season/toast/breakdown) restent OFF. */
+  studioAudience: true,
 
   // ─── Marketing / navigation secondaire ─────────────────────────────────
   /** Programme parrainage — pas de récompenses réelles ni de mécanique
