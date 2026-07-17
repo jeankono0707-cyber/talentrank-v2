@@ -1,6 +1,7 @@
 "use client";
 
 import { useAudience } from "@/lib/audience/client";
+import { FEATURES } from "@/lib/features";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,6 +43,11 @@ export function CrosshairOverlay({
   className,
 }: Props) {
   const { audience } = useAudience();
+  // Décision directeur : le langage Western (crosshair, WANTED, cowboy, boing)
+  // était cohérent avec la v1 Duolingo/Western mais jure avec la charte pro
+  // v3. Tant que le studio n'est pas prêt (flag studioAudience off), on
+  // n'affiche plus le viseur — évite la dissonance.
+  if (!FEATURES.studioAudience) return null;
   // Visible uniquement pour les studios — un talent ne se chasse pas lui-même.
   // Override via bypassAudienceGate quand on veut juste l'effet visuel.
   if (!bypassAudienceGate && audience !== "studio") return null;

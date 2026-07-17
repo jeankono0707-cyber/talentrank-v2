@@ -2,6 +2,7 @@
 
 import { motion, useScroll, useTransform } from "framer-motion";
 import { HunterMascot } from "@/components/ui/HunterMascot";
+import { FEATURES } from "@/lib/features";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PeekingMascot — la tête du CHASSEUR DE TÊTES qui dépasse du haut du Hero.
@@ -15,11 +16,14 @@ import { HunterMascot } from "@/components/ui/HunterMascot";
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function PeekingMascot() {
-  // Micro-parallax au scroll (audit Léo G2-Léo-3) :
-  // le sheriff s'élève très légèrement quand le user scroll = dynamise sans
-  // ajouter d'idle bobbing répétitif. -40px max sur les 500 premiers px.
+  // Décision directeur : le hunter cowboy sur le hero landing appartient à
+  // la grammaire Western v1 (Chasseur/Chassé). Tant que le studio n'est pas
+  // prêt (flag studioAudience off), on le retire — évite la dissonance
+  // avec la charte pro v3.
   const { scrollY } = useScroll();
   const parallaxY = useTransform(scrollY, [0, 500], [0, -40]);
+
+  if (!FEATURES.studioAudience) return null;
 
   return (
     <motion.div

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { FEATURES } from "@/lib/features";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TalentRank — Sound effects (Web Audio API, zero-asset).
@@ -148,8 +149,11 @@ function playTone({
 // ─── Sound presets ────────────────────────────────────────────────────────
 
 /** "Boing" satisfaisant : pitch monte rapidement (shortlist / opt-in).
- *  Combine deux ondes pour un timbre rebond. Debounced 500ms. */
+ *  Combine deux ondes pour un timbre rebond. Debounced 500ms.
+ *  Décision directeur : muet tant que studioAudience OFF (chasse studio
+ *  pas prête). */
 export function playShortlist(): void {
+  if (!FEATURES.studioAudience) return;
   if (isDebounced("shortlist")) return;
   playTone({ freqStart: 320, freqEnd: 720, durationMs: 110, type: "triangle", peak: 0.22 });
   playTone({ freqStart: 720, freqEnd: 540, durationMs: 180, type: "sine", peak: 0.16, delayMs: 90 });
@@ -158,6 +162,7 @@ export function playShortlist(): void {
 
 /** "Whoop" descendant : retirer de la file. Debounced 500ms. */
 export function playUnshortlist(): void {
+  if (!FEATURES.studioAudience) return;
   if (isDebounced("unshortlist")) return;
   playTone({ freqStart: 540, freqEnd: 260, durationMs: 180, type: "triangle", peak: 0.14 });
 }
