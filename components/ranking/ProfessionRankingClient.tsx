@@ -13,6 +13,7 @@ import { getCategory, getProfession, professionLabel } from "@/lib/professions";
 import { iconForCategory } from "@/lib/profession-icons";
 import { CategoryMascot } from "@/components/ui/CategoryMascot";
 import { mascotForCategory } from "@/lib/category-mascots";
+import { FEATURES } from "@/lib/features";
 import { findCountry } from "@/lib/countries";
 import { getTalentsByProfession, type Talent } from "@/lib/mock-talents";
 import { EXPERIENCE_ORDER, experienceClassForYears, type ExperienceClassId } from "@/lib/experience-class";
@@ -180,8 +181,16 @@ export function ProfessionRankingClient({ professionId }: Props) {
           {filtered.length > 1 ? "s" : ""} classé{filtered.length > 1 ? "s" : ""}
           {activeFilterCount > 0
             ? ` · ${activeFilterCount} filtre${activeFilterCount > 1 ? "s" : ""}`
-            : " · classement complet"}
+            : ""}
         </p>
+
+        {FEATURES.betaHonestyBanner && (
+          <div className="mt-4 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-energy-50 ring-1 ring-inset ring-energy-300/50 px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-energy-700">
+              Beta privée · Seed en cours
+            </span>
+          </div>
+        )}
       </header>
 
       {/* ─── MyRankBanner (REFONTE-P3) ─────────────────────────────────────

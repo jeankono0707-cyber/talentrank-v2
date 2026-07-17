@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Podium, type PodiumEntry } from "./Podium";
 import { SeasonCountdown } from "@/components/gamification/SeasonCountdown";
+import { FEATURES } from "@/lib/features";
 import {
   PROFESSIONS,
   PROFESSION_CATEGORIES,
@@ -130,29 +131,36 @@ export function RankingHubClient({ professions, categories, trending, totalTalen
           <HeroSearchBar professions={professions} />
         </motion.div>
 
-        {/* ─── Stats inline ─── */}
+        {/* ─── Stats inline — chiffres HONNÊTES + bandeau beta ─── */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-5 flex items-center justify-center gap-6 text-[13.5px] text-mist-200"
+          className="mt-5 flex flex-col items-center gap-3"
         >
-          <span className="inline-flex items-center gap-1.5">
-            <Users className="h-4 w-4 text-skyblue-600" strokeWidth={2.4} />
-            <strong className="text-night-900 tabular-nums">
-              +{totalTalents.toLocaleString("fr-FR")}
-            </strong>{" "}
-            talents classés
-          </span>
-          <span className="h-4 w-px bg-ink-700/15" />
-          <span className="inline-flex items-center gap-1.5">
-            <Trophy className="h-4 w-4 text-energy-500" strokeWidth={2.4} />
-            dans{" "}
-            <strong className="text-night-900 tabular-nums">
-              {totalProfessions}
-            </strong>{" "}
-            métiers
-          </span>
+          <div className="flex items-center gap-6 text-[13.5px] text-mist-200">
+            <span className="inline-flex items-center gap-1.5">
+              <Users className="h-4 w-4 text-skyblue-600" strokeWidth={2.4} />
+              <strong className="text-night-900 tabular-nums">
+                {totalTalents.toLocaleString("fr-FR")}
+              </strong>{" "}
+              talent{totalTalents > 1 ? "s" : ""} classé{totalTalents > 1 ? "s" : ""}
+            </span>
+            <span className="h-4 w-px bg-ink-700/15" />
+            <span className="inline-flex items-center gap-1.5">
+              <Trophy className="h-4 w-4 text-energy-500" strokeWidth={2.4} />
+              dans{" "}
+              <strong className="text-night-900 tabular-nums">
+                {totalProfessions}
+              </strong>{" "}
+              métier{totalProfessions > 1 ? "s" : ""}
+            </span>
+          </div>
+          {FEATURES.betaHonestyBanner && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-energy-50 ring-1 ring-inset ring-energy-300/50 px-3 py-1 text-[10.5px] font-bold uppercase tracking-[0.14em] text-energy-700">
+              Beta privée · Seed en cours
+            </span>
+          )}
         </motion.div>
 
         {/* ─── ROYAUMES — 4 grandes cards avec mascotte ─── */}
@@ -198,15 +206,17 @@ export function RankingHubClient({ professions, categories, trending, totalTalen
           </Link>
         </motion.div>
 
-        {/* ─── Season countdown — FOMO de cycle Léo ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
-          className="mt-8 max-w-3xl mx-auto"
-        >
-          <SeasonCountdown variant="banner" />
-        </motion.div>
+        {/* Season countdown — off tant qu'aucun trophée réel décerné. */}
+        {FEATURES.seasonCountdown && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.45 }}
+            className="mt-8 max-w-3xl mx-auto"
+          >
+            <SeasonCountdown variant="banner" />
+          </motion.div>
+        )}
 
         {/* ─── TRENDING ─── */}
         {trending.length > 0 && (

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LeagueBreakdownModal } from "@/components/gamification/LeagueBreakdownModal";
 import { RankDeltaToast } from "@/components/gamification/RankDeltaToast";
+import { FEATURES } from "@/lib/features";
 import { cn } from "@/lib/utils";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -128,30 +129,39 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
         <div className="relative p-5 md:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6">
             {/* League badge — gros, à gauche.
-                Clic = ouvre la modal de breakdown (transparence Léo). */}
+                Clic ouvre la modal breakdown SI la feature est activée
+                (sinon simple display statique — pas de mensonge cliquable). */}
             <div className="flex items-center gap-4">
               <motion.button
-                onClick={() => setBreakdownOpen(true)}
+                onClick={() => FEATURES.leagueBreakdown && setBreakdownOpen(true)}
+                disabled={!FEATURES.leagueBreakdown}
                 initial={{ scale: 0, rotate: -10 }}
                 animate={{ scale: 1, rotate: 0 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={FEATURES.leagueBreakdown ? { scale: 1.05 } : undefined}
                 transition={{ delay: 0.35, type: "spring", stiffness: 220, damping: 14 }}
-                aria-label={`Ligue ${my.league} — Comprendre le calcul`}
+                aria-label={
+                  FEATURES.leagueBreakdown
+                    ? `Ligue ${my.league} — Comprendre le calcul`
+                    : `Ligue ${my.league}`
+                }
                 className={cn(
-                  "group relative shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br cursor-pointer transition-all",
+                  "group relative shrink-0 grid place-items-center rounded-2xl bg-gradient-to-br transition-all",
                   league.bg,
                   league.glow,
                   "h-16 w-16 md:h-20 md:w-20",
-                  "hover:shadow-2xl",
+                  FEATURES.leagueBreakdown
+                    ? "cursor-pointer hover:shadow-2xl"
+                    : "cursor-default",
                 )}
               >
                 <span className="font-display text-3xl md:text-4xl font-black text-white drop-shadow">
                   {my.league}
                 </span>
-                {/* Indicateur info au hover */}
-                <span className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-white shadow-card ring-1 ring-ink-700/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Info className="h-3 w-3 text-night-700" strokeWidth={2.8} />
-                </span>
+                {FEATURES.leagueBreakdown && (
+                  <span className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-white shadow-card ring-1 ring-ink-700/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Info className="h-3 w-3 text-night-700" strokeWidth={2.8} />
+                  </span>
+                )}
               </motion.button>
 
               <div className="min-w-0">
@@ -269,19 +279,19 @@ export function MyRankBanner({ professionId, professionLabel, totalTalents, rank
         </div>
       </motion.div>
 
-      {/* Modal breakdown ligue — transparence Léo. Au clic sur le badge ligue
-          le user voit le détail du calcul (QCM + ancienneté + peer reviews). */}
-      <LeagueBreakdownModal
-        open={breakdownOpen}
-        onClose={() => setBreakdownOpen(false)}
-        league={my.league}
-        breakdown={mockBreakdown}
-        percentile={percentile}
-      />
+      {/* Modal breakdown ligue — OFF tant que pas de peer reviews réelles. */}
+      {FEATURES.leagueBreakdown && (
+        <LeagueBreakdownModal
+          open={breakdownOpen}
+          onClose={() => setBreakdownOpen(false)}
+          league={my.league}
+          breakdown={mockBreakdown}
+          percentile={percentile}
+        />
+      )}
 
-      {/* Toast delta négatif Léo — variable reward au mount. S'affiche 1 fois
-          par session si le user a perdu des places cette semaine. */}
-      {my.deltaThisWeek < 0 && (
+      {/* Toast delta négatif — OFF tant que delta mock déterministe (ment). */}
+      {FEATURES.rankDeltaToast && my.deltaThisWeek < 0 && (
         <RankDeltaToast
           placesLost={Math.abs(my.deltaThisWeek)}
           professionLabel={professionLabel}

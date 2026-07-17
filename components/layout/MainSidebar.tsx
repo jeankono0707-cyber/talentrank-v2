@@ -15,6 +15,7 @@ import { BrandLogo } from "@/components/ui/BrandLogo";
 import { LeagueMascot } from "@/components/ui/LeagueMascot";
 import { SidebarIcon, type SidebarIconName } from "@/components/ui/SidebarIcon";
 import { StreakBadge } from "@/components/gamification/StreakBadge";
+import { FEATURES } from "@/lib/features";
 import { cn } from "@/lib/utils";
 import type { TierId } from "@/lib/tiers";
 import {
@@ -70,12 +71,14 @@ interface NavItem {
 // Pour Opportunités/Messagerie/Candidats/Abonnement → lucide line icons
 // avec une chip de couleur (cohérent avec le reste sans dupliquer le PNG style).
 
+// Décision directeur : réduire à 3 items essentiels pour le talent.
+// Opportunités et Messagerie sont retirées tant qu'aucune vraie donnée
+// n'existe (messagerie bloquée Phase 5, aucune vraie opportunité listée).
+// On rajoutera quand ce sera prêt et réel.
 const NAV_TALENT: NavItem[] = [
   { href: "/qcm",                      label: "Mon QCM",      icon: "qcm" },
   { href: "/ranking",                  label: "Classements",  icon: "ranking" },
   { href: "/dashboard/talent/profile", label: "Mon profil",   icon: "profil" },
-  { href: "/opportunites",             label: "Opportunités", icon: "opportunites" },
-  { href: "/messages",                 label: "Messagerie",   icon: "messagerie" },
 ];
 
 const NAV_STUDIO: NavItem[] = [
@@ -92,7 +95,11 @@ const NAV_STUDIO: NavItem[] = [
 ];
 
 function navFor(audience: Audience | null): NavItem[] {
-  if (audience === "studio") return NAV_STUDIO;
+  // Feature flag directeur : tant que le studio n'est pas prêt (messagerie
+  // bloquée, aucune entreprise réelle), on force TOUJOURS le nav talent
+  // même si l'audience est "studio". Le user en mode Entreprise voit la
+  // sidebar talent (pas cassé, juste identique).
+  if (audience === "studio" && FEATURES.studioAudience) return NAV_STUDIO;
   // Par défaut talent (cas où le user n'a pas encore choisi mais on est
   // sur une route avec sidebar — improbable mais filet de sécurité)
   return NAV_TALENT;
