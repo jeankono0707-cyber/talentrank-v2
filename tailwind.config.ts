@@ -9,32 +9,33 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ─── Surfaces (the "paper" scale) ────────────────────────────────
-        // We kept the `ink-*` token names for backward compatibility, but
-        // they now describe a LIGHT surface ramp: 950 = cream background,
-        // 900 = pure white cards, higher numbers = darker dividers.
+        // ─── Surfaces STUDIO GHIBLI (chaud humain, arts créatifs) ─────────
+        // Fond app crème brûlée + cards blanches pures + dividers dorés
+        // discrets. Le contraste bleu/orange logo explose sur ce fond
+        // chaud, personne d'autre ne fait ça en recrutement.
+        //
+        // On garde les noms ink-* pour rétro-compat (tous les composants
+        // qui utilisent bg-ink-950 basculent auto).
         ink: {
-          950: "#FFFFFF",   // app background — pure white now
-          900: "#FFFFFF",   // card surface
-          875: "#FFFFFF",
-          850: "#F7F7F7",   // alt card / strip (neutral gray, no yellow)
-          800: "#EFEFEF",   // hover
-          750: "#E0E0E0",
-          700: "#CCCCCC",   // border / divider
-          600: "#999999",
-          500: "#666666",
+          950: "#FFF6E9",   // fond app — crème brûlée signature Ghibli
+          900: "#FFFFFF",   // cards — blanc pur
+          875: "#FFFDF7",   // cards avec chaleur légère
+          850: "#F9F1E1",   // alt strip (ivoire chaud)
+          800: "#F0E4D0",   // divider clair (crème dorée)
+          750: "#E5D5B8",   // border / divider
+          700: "#D6C29A",   // strong border
+          600: "#B8A17A",   // hover deep
+          500: "#7A6045",   // sépia muted
         },
-        // ─── Text scale (the "ink-on-paper" scale) ───────────────────────
-        // Kept `mist-*` for compatibility but flipped: 50 = darkest text,
-        // 600 = lightest hint. Read it as "shadow weight".
+        // ─── Text scale (brun profond sur crème, contraste AA garanti) ──
         mist: {
-          50: "#1B1208",    // strongest titles
-          100: "#2A1F12",
-          200: "#3E2E1B",   // strong body
-          300: "#5A4528",   // body
-          400: "#6E5A3E",   // muted — bumped from #7D6A4B to clear AA 4.5:1 on white
-          500: "#A39074",   // hint
-          600: "#C9B998",   // disabled
+          50: "#2A1810",    // titres — brun profond signature Ghibli
+          100: "#3A2418",
+          200: "#4A3020",   // body strong
+          300: "#5C3F2B",   // body
+          400: "#7A6045",   // sépia muted (AA 5.2:1 sur crème)
+          500: "#A08B6E",   // hint
+          600: "#C2AE8B",   // disabled
         },
         // ─── Brand cyan (kept, slightly punchier) ────────────────────────
         cyan: {

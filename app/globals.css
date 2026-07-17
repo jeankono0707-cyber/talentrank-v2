@@ -87,10 +87,15 @@
     --color-night-900: #0A1018;
     --color-ink: #1B1208;
 
-    /* Surfaces */
-    --bg-cream-soft:    linear-gradient(180deg, #FEFCF6 0%, #FAF6EA 100%);
-    --bg-cream-warm:    linear-gradient(135deg, #FFF8E1 0%, #FFE8B0 100%);
-    --bg-cream-deeper:  linear-gradient(135deg, #FFF3D1 0%, #FFE099 100%);
+    /* Surfaces — palette STUDIO GHIBLI */
+    --bg-app:           #FFF6E9;                      /* fond app (crème brûlée signature) */
+    --bg-app-warm:      linear-gradient(180deg, #FFF9EF 0%, #FFF1DC 100%);
+    --bg-cream-soft:    linear-gradient(180deg, #FFFDF7 0%, #FFF6E9 100%);
+    --bg-cream-warm:    linear-gradient(135deg, #FFF4D9 0%, #FFE8B0 100%);
+    --bg-cream-deeper:  linear-gradient(135deg, #FFEDC7 0%, #FFD98A 100%);
+    --color-divider:    #F0E4D0;                      /* crème dorée discrète */
+    --color-text-main:  #2A1810;                      /* brun profond */
+    --color-text-muted: #7A6045;                      /* sépia */
 
     /* Shadows — vocabulaire unifié (au lieu de 30 boxShadow inline) */
     --shadow-card:
